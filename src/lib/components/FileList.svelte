@@ -4,7 +4,7 @@
 	import FileListEntry from './FileListEntry.svelte';
 	import FileListHeaderEntry from './FileListHeaderEntry.svelte';
 	import { settings, pressedKeys, selectedFiles } from '$lib/stores';
-	import { fileListHeaderMinWidth } from '$lib/utils/constants';
+	import { fileListHeaderMinWidth, zoomStep, maxZoom, minZoom } from '$lib/utils/constants';
 
 	export let files: FileData[] = [];
 
@@ -77,8 +77,8 @@
 
 		const delta = e.clientX - lastX;
 		lastX = e.clientX;
-		let toAdd = delta * pxEmConversionFactor;
-    
+		let toAdd = Math.round(delta * pxEmConversionFactor * 100) / 100;
+    console.log(pxEmConversionFactor)
 		let headers = $settings.fileList.fileListHeaders;
     headers.forEach((header) => {
       if (header.sortType === currentType) {
@@ -135,11 +135,18 @@
 			return data;
 		});
 	};
+
+	const scrollHandler = (e: Event) => {
+		if(!$pressedKeys.includes('control')) return;
+
+		const delta = (e as WheelEvent).deltaY * -zoomStep / 100;
+		$settings.appearance.zoom = Math.max(minZoom, Math.min(maxZoom, $settings.appearance.zoom + delta));
+	};
 </script>
 
 <svelte:body on:mouseup={mouseUpHandler} on:mousemove={mouseMoveHandler} />
 
-<div class="file-list" style="font-size: {18 * $settings.appearance.zoom}px;">
+<div class="file-list" style="font-size: {18 * $settings.appearance.zoom}px;" on:wheel={scrollHandler}>
 	<div class="file-list-header">
 		<div class="file-list-header-left" style="min-width: 3.75em;"></div>
 		{#each $settings.fileList.fileListHeaders as header}
@@ -189,7 +196,7 @@
 		overflow-x: hidden;
 	}
 	.file-list-items::-webkit-scrollbar {
-		width: 1em;
+		width: 14px;
 	}
 
 	.file-list-items::-webkit-scrollbar-track {
@@ -198,7 +205,7 @@
 
 	.file-list-items::-webkit-scrollbar-thumb {
 		background-color: var(--color-secondary);
-		border-radius: 1em;
+		border-radius: 14px;
 		border: 3px solid var(--color-primary);
 	}
 

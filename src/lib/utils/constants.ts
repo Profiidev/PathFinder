@@ -6,7 +6,8 @@ export const fileListHeaders = [
   { name: 'Created', sortType: SortType.CREATED_DATE, width: 12, active: true } as FileListHeader,
   { name: 'Modified', sortType: SortType.MODIFIED_DATE, width: 12, active: true } as FileListHeader,
   { name: 'Owner', sortType: SortType.OWNER, width: 6.3, active: true } as FileListHeader,
-  { name: 'Permissions', sortType: SortType.PERMISSIONS, width: 8.6, active: true } as FileListHeader,
+	{ name: 'Permissions', sortType: SortType.PERMISSIONS, width: 8.6, active: true } as FileListHeader,
+	{ name: 'Type', sortType: SortType.TYPE, width: 6.3, active: true } as FileListHeader,
   { name: 'Size', sortType: SortType.SIZE, width: 6.3, active: true } as FileListHeader,
 ];
 
@@ -19,7 +20,7 @@ export const defaultSettings = {
 		sortAscending: true
 	} as FileListSettings,
 	appearance: {
-		zoom: 1,
+		zoom: .6,
 		theme: Theme.DARK,
 		iconTheme: IconTheme.BLUE
 	} as AppearanceSettings

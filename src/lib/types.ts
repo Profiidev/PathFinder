@@ -58,7 +58,8 @@ export enum SortType {
 	CREATED_DATE = 'created_date',
 	MODIFIED_DATE = 'modified_date',
 	OWNER = 'owner',
-	PERMISSIONS = 'permissions'
+	PERMISSIONS = 'permissions',
+	TYPE = 'type',
 }
 
 export type FileSelectionData = {

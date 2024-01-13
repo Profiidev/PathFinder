@@ -11,8 +11,13 @@
 
 	let pxEmConversion = 0;
 	let searchIcon = 'none';
-
-	$: pxEmConversion = 1 / parseFloat(getComputedStyle(document.documentElement).fontSize);
+	let element: HTMLElement;
+;
+	$: {
+		if(element) {
+			pxEmConversion = 1 / parseFloat(getComputedStyle(element).fontSize);
+		}
+	}
 	$: {
 		if (type === $settings.fileList.sortType) {
 			if ($settings.fileList.sortAscending) {
@@ -36,7 +41,7 @@
 
 <div class="file-list-header-entry reset-button">
 	<button class="reset-button" on:click={clickHandler}>
-		<div class="file-list-header-info" style="--width: {width}em;">{text}</div>
+		<div class="file-list-header-info" style="--width: {width}em;" bind:this={element}>{text}</div>
 		<div class="file-list-header-sort">
 			{#if searchIcon === 'up'}
 				<Svg

@@ -29,6 +29,7 @@
 		fileDataString.push(parseDate(file.createdDate));
 		fileDataString.push(file.owner);
 		fileDataString.push(file.permissions);
+		fileDataString.push(file.type);
 		fileDataString.push(parseSize(file.size));
 	}
 
