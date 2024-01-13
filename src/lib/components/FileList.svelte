@@ -78,7 +78,7 @@
 		const delta = e.clientX - lastX;
 		lastX = e.clientX;
 		let toAdd = Math.round(delta * pxEmConversionFactor * 100) / 100;
-    console.log(pxEmConversionFactor)
+    
 		let headers = $settings.fileList.fileListHeaders;
     headers.forEach((header) => {
       if (header.sortType === currentType) {

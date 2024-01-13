@@ -12,12 +12,7 @@
 	let pxEmConversion = 0;
 	let searchIcon = 'none';
 	let element: HTMLElement;
-;
-	$: {
-		if(element) {
-			pxEmConversion = 1 / parseFloat(getComputedStyle(element).fontSize);
-		}
-	}
+
 	$: {
 		if (type === $settings.fileList.sortType) {
 			if ($settings.fileList.sortAscending) {
@@ -35,7 +30,7 @@
 	};
 
 	const mouseDownHandler = (e: MouseEvent) => {
-		mouseDown(e, pxEmConversion, type);
+		mouseDown(e, 1 / (parseFloat(getComputedStyle(element).fontSize)), type);
 	};
 </script>
 
