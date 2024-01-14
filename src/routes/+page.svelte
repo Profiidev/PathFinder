@@ -105,11 +105,15 @@
 	<div class="topbar-container">
 		<Topbar />
 	</div>
-	<div class="file-list-container">
-		<FileList files={testData} />
+	<div class="content-container">
+		<div class="sidebar-container">
+
+		</div>
+		<div class="file-list-container">
+			<FileList files={testData} />
+		</div>
 	</div>
 </div>
-
 <style>
 	.container {
 		display: flex;
@@ -128,9 +132,22 @@
 		width: 100%;
 	}
 
-	.file-list-container {
+	.content-container {
+		display: flex;
+		flex-direction: row;
 		height: calc(100vh - 3.5em);
 		width: 100%;
 		border-top: 1px solid var(--color-secondary);
+	}
+
+	.sidebar-container {
+		height: 100%;
+		width: 10em;
+		border-right: 1px solid var(--color-secondary);
+	}
+
+	.file-list-container {
+		height: 100%;
+		width: calc(100% - 10em);
 	}
 </style>

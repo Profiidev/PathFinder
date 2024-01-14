@@ -36,17 +36,19 @@
 
 <div class="file-list-header-entry reset-button" bind:clientWidth={headerWidth}>
 	<button class="reset-button" on:click={clickHandler}>
-		<div class="file-list-header-info" style="--width: calc({width}em + .1em);" bind:this={element}>{text}</div>
+		<div class="file-list-header-info" style="--width: calc({width}em + .1em);" bind:this={element}>
+			{text}
+		</div>
 		<div class="file-list-header-sort">
 			{#if searchIcon === 'up'}
 				<Svg
-					src="/svgs/ui/sort_arrow_down.svg"
+					src="/svgs/ui/simple_arrow_down.svg"
 					width={20 * $settings.appearance.zoom}
 					height={20 * $settings.appearance.zoom}
 				/>
 			{:else if searchIcon === 'down'}
 				<Svg
-					src="/svgs/ui/sort_arrow_up.svg"
+					src="/svgs/ui/simple_arrow_up.svg"
 					width={20 * $settings.appearance.zoom}
 					height={20 * $settings.appearance.zoom}
 				/>
@@ -74,7 +76,7 @@
 		white-space: nowrap;
 		font-size: 1.26em;
 		user-select: none;
-		padding-left: .85em;
+		padding-left: 0.85em;
 	}
 
 	.file-list-header-sort {

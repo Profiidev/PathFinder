@@ -5,6 +5,6 @@
 	export let height: number = 50;
 </script>
 
-<div style={style}>
+<div style={style} class="icon-svg">
 	<img {src} alt="Svg" style="width: {width}px; height: {height}px;" />
 </div>

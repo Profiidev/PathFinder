@@ -28,6 +28,7 @@
 		--color-primary: rgb(28, 29, 38);
 		--color-secondary: rgb(52, 52, 61);
 		--color-tertiary: rgb(41, 41, 49);
+		--color-quaternary: rgb(146, 146, 160);
 
 		--color-accent: rgb(28, 153, 255);
 
