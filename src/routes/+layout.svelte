@@ -27,6 +27,9 @@
 
 		--color-primary: rgb(28, 29, 38);
 		--color-secondary: rgb(52, 52, 61);
+		--color-tertiary: rgb(41, 41, 49);
+
+		--color-accent: rgb(28, 153, 255);
 
 		--color-text: rgb(255, 255, 255);
 	}

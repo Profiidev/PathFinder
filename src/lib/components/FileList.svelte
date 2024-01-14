@@ -142,19 +142,27 @@
 		const delta = (e as WheelEvent).deltaY * -zoomStep / 100;
 		$settings.appearance.zoom = Math.max(minZoom, Math.min(maxZoom, $settings.appearance.zoom + delta));
 	};
+
+	let headerWidths: number[] = [];
+	let totalWidth = 0;
+
+	$: {
+		totalWidth = headerWidths.reduce((a, b) => a + b, 0);
+	}
 </script>
 
 <svelte:body on:mouseup={mouseUpHandler} on:mousemove={mouseMoveHandler} />
 
 <div class="file-list" style="font-size: {18 * $settings.appearance.zoom}px;" on:wheel={scrollHandler}>
 	<div class="file-list-header">
-		<div class="file-list-header-left" style="min-width: 3.75em;"></div>
-		{#each $settings.fileList.fileListHeaders as header}
+		<div class="file-list-header-left" style="min-width: 2.75em;" bind:clientWidth={headerWidths[0]}></div>
+		{#each $settings.fileList.fileListHeaders as header, i}
 			{#if header.active}
 				<FileListHeaderEntry
 					width={header.width}
 					type={header.sortType}
 					text={header.name}
+					bind:headerWidth={headerWidths[i + 1]}
 					{onSort}
 					{mouseDown}
 				/>
@@ -163,7 +171,7 @@
 	</div>
 	<div class="file-list-items">
 		{#each files as file}
-			<FileListEntry {file} {onSelected} />
+			<FileListEntry {file} {onSelected} width={totalWidth} />
 		{/each}
 	</div>
 </div>

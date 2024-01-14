@@ -50,6 +50,7 @@ export type FileListHeader = {
 	sortType: SortType;
 	width: number;
 	active: boolean;
+	align_text_right?: boolean;
 };
 
 export enum SortType {

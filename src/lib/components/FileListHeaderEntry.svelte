@@ -8,8 +8,8 @@
 	export let type: SortType = SortType.NAME;
 	export let onSort: (test: SortType) => void;
 	export let mouseDown: (e: MouseEvent, pxEmConversion: number, type: SortType) => void;
+	export let headerWidth = 0;
 
-	let pxEmConversion = 0;
 	let searchIcon = 'none';
 	let element: HTMLElement;
 
@@ -30,13 +30,13 @@
 	};
 
 	const mouseDownHandler = (e: MouseEvent) => {
-		mouseDown(e, 1 / (parseFloat(getComputedStyle(element).fontSize)), type);
+		mouseDown(e, 1 / parseFloat(getComputedStyle(element).fontSize), type);
 	};
 </script>
 
-<div class="file-list-header-entry reset-button">
+<div class="file-list-header-entry reset-button" bind:clientWidth={headerWidth}>
 	<button class="reset-button" on:click={clickHandler}>
-		<div class="file-list-header-info" style="--width: {width}em;" bind:this={element}>{text}</div>
+		<div class="file-list-header-info" style="--width: calc({width}em + .1em);" bind:this={element}>{text}</div>
 		<div class="file-list-header-sort">
 			{#if searchIcon === 'up'}
 				<Svg
@@ -59,6 +59,11 @@
 <style>
 	.file-list-header-entry {
 		height: 100%;
+		border-radius: 0.63em;
+	}
+
+	.file-list-header-entry:hover {
+		background-color: var(--color-secondary);
 	}
 
 	.file-list-header-info {
@@ -69,6 +74,7 @@
 		white-space: nowrap;
 		font-size: 1.26em;
 		user-select: none;
+		padding-left: .85em;
 	}
 
 	.file-list-header-sort {
@@ -78,16 +84,14 @@
 		justify-content: center;
 		width: 2.52em;
 		height: 2.52em;
-		border-right: 1px solid var(--color-secondary);
 		user-select: none;
 		pointer-events: none;
-		padding-right: 0.5em;
 	}
 
 	.file-list-header-entry-drag {
 		width: 0.5em;
 		height: 100%;
 		cursor: col-resize;
-		margin-right: 0.5em;
+		border-right: 1px solid var(--color-secondary);
 	}
 </style>

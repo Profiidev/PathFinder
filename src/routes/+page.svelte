@@ -3,6 +3,7 @@
 	import FileList from '$lib/components/FileList.svelte';
 	import { FileType } from '$lib/types';
 	import type { FileData } from '$lib/types';
+	import Topbar from '$lib/components/Topbar.svelte';
 
 	let testList: string[] = [];
 	let input = '';
@@ -85,21 +86,6 @@
 		});
 		count++;
 	};
-	/*
-  <input type="text" bind:value={input}>
-  <div class="bc">
-    <button on:click={search}>Search</button>
-    <button on:click={addLocation}>Add Location</button>
-    <button on:click={removeLocation}>Remove Location</button>
-    <button on:click={reindexLocation}>Reindex Location</button>
-    <button on:click={getTree}>Get Tree</button>
-  </div>
-  <Svg src="/svgs/folder/folder_default.svg" width={100} height={100} />
-	{#each testList as test}
-		<div>{test}</div>
-	{/each}
-  <div>{count}</div>
-  */
 
 	let testData: FileData[] = [];
 	for (let i = 0; i < 100; i++) {
@@ -116,7 +102,12 @@
 </script>
 
 <div class="container">
-	<FileList files={testData} />
+	<div class="topbar-container">
+		<Topbar />
+	</div>
+	<div class="file-list-container">
+		<FileList files={testData} />
+	</div>
 </div>
 
 <style>
@@ -132,26 +123,14 @@
 		overflow: hidden;
 	}
 
-	div {
-		margin: 0px;
-		padding: 0px;
-		color: white;
-		white-space: pre;
+	.topbar-container {
+		height: 3.5em;
+		width: 100%;
 	}
 
-	button {
-		margin: 0px;
-		padding: 0px;
-		color: white;
-		background-color: black;
-		border: 1px solid white;
-		width: 150px;
-	}
-
-	.bc {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		justify-content: space-evenly;
+	.file-list-container {
+		height: calc(100vh - 3.5em);
+		width: 100%;
+		border-top: 1px solid var(--color-secondary);
 	}
 </style>

@@ -14,6 +14,7 @@
 		owner: 'undefined',
 		permissions: 'undefined'
 	};
+	export let width = 100;
 
 	export let onSelected: (e: Event, file: FileData, selected: boolean) => void = () => {};
 
@@ -56,8 +57,8 @@
 </script>
 
 <button
-	class="file-list-entry {selected ? 'file-list-entry-selected' : ''}"
-	style="font-size: {18 * $settings.appearance.zoom}px;"
+	class="file-list-entry reset-button {selected ? 'file-list-entry-selected' : ''}"
+	style="font-size: {18 * $settings.appearance.zoom}px; width: {width}px;"
 	on:click={clickHandler}
 >
 	<div class="file-list-entry-icon">
@@ -66,7 +67,7 @@
 	<div class="file-list-entry-data">
 		{#each $settings.fileList.fileListHeaders as header, i}
 			{#if header.active}
-				<div class="file-list-entry-info" style="width: {header.width}em;">{fileDataString[i]}</div>
+				<div class="file-list-entry-info {header.align_text_right ? "file-list-entry-info-align-right" : ""}" style="width: {header.width}em;">{fileDataString[i]}</div>
 			{/if}
 		{/each}
 	</div>
@@ -74,19 +75,8 @@
 
 <style>
 	.file-list-entry {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
 		border-radius: 0.63em;
 		min-height: 3.15em;
-		background: transparent;
-		color: inherit;
-		font: inherit;
-		outline: none;
-		padding: 0;
-		text-align: inherit;
-		text-decoration: none;
-		border: none;
 		margin-bottom: 0.275em;
 	}
 
@@ -116,5 +106,9 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		font-size: 1.26em;
+	}
+
+	.file-list-entry-info-align-right {
+		text-align: right;
 	}
 </style>
