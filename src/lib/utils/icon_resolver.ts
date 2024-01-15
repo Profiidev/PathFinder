@@ -43,7 +43,7 @@ export const getIconData = (fileType: FileType, iconTheme: IconTheme) => {
 export const getPrimaryColor = (iconTheme: IconTheme) => {
 	switch (iconTheme) {
 		case IconTheme.BLUE:
-			return '1c1d26';
+			return '1d98ff';
 		case IconTheme.GREEN:
 			return '4caf50';
 		case IconTheme.RED:
@@ -51,7 +51,7 @@ export const getPrimaryColor = (iconTheme: IconTheme) => {
 		case IconTheme.YELLOW:
 			return 'FAC017';
 		case IconTheme.PURPLE:
-			return '9c27b0';
+			return '5800dd';
 	}
 }
 
@@ -64,8 +64,8 @@ export const getSecondaryColor = (iconTheme: IconTheme) => {
 		case IconTheme.RED:
 			return 'f44336';
 		case IconTheme.YELLOW:
-			return 'FAC017';
+			return 'b88a00';
 		case IconTheme.PURPLE:
-			return '9c27b0';
+			return '2e007a';
 	}
 }

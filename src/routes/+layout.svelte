@@ -19,9 +19,9 @@
 	};
 
 	$: $settings.appearance.iconTheme, 
-		document.documentElement?.style.setProperty('--color-accent', "#" + getPrimaryColor($settings.appearance.iconTheme)),
-		document.documentElement?.style.setProperty('--color-accent-dark', "#" + getSecondaryColor($settings.appearance.iconTheme)),
-		console.log(document.documentElement?.style)
+		document.body.style.setProperty('--color-accent', "#" + getPrimaryColor($settings.appearance.iconTheme)),
+		document.body.style.setProperty('--color-accent-dark', "#" + getSecondaryColor($settings.appearance.iconTheme)),
+		console.log(document.body.style)
 	
 </script>
 

@@ -3,7 +3,7 @@
 	import SidebarSection from '$lib/components/SidebarSection.svelte';
 	import Svg from '$lib/components/Svg.svelte';
 	import { settings } from '$lib/stores';
-	import { getIconData } from '$lib/utils/icon_resolver';
+	import { getIconData, getSecondaryColor, getPrimaryColor } from '$lib/utils/icon_resolver';
 	import { sidebarMinWidth } from '$lib/utils/constants';
 	import { FileType } from '$lib/types';
 
@@ -49,13 +49,13 @@
 						height: 20
 					}}
 					overlayData={{
-						data: { path: '/svgs/folder/home.svg', colors: [{ key: 'FFFFFF', color: '002ab6' }] },
+						data: { path: '/svgs/folder/home.svg', colors: [{ key: 'FFFFFF', color: getSecondaryColor($settings.appearance.iconTheme) }] },
 						width: 12,
 						height: 12
 					}}
 				/>
 			</SidebarEntry>
-			<SidebarEntry svgData={{ path: '/svgs/ui/network.svg', colors: [] }} text="Network" />
+			<SidebarEntry svgData={{ path: '/svgs/ui/network.svg', colors: [{ key: 'FFFFFF', color: getPrimaryColor($settings.appearance.iconTheme) }] }} text="Network" />
 		</div>
 		<SidebarSection index={0} text="Pinned">
 			{#each $settings.sidebar.pinnedPaths as pinned}
