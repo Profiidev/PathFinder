@@ -151,7 +151,7 @@
 	}
 </script>
 
-<svelte:body on:mouseup={mouseUpHandler} on:mousemove={mouseMoveHandler} />
+<svelte:window on:mouseup={mouseUpHandler} on:mousemove={mouseMoveHandler} />
 
 <div class="file-list" style="font-size: {18 * $settings.appearance.zoom}px;" on:wheel={scrollHandler}>
 	<div class="file-list-header">
@@ -169,7 +169,7 @@
 			{/if}
 		{/each}
 	</div>
-	<div class="file-list-items">
+	<div class="file-list-items scrollbar">
 		{#each files as file}
 			<FileListEntry {file} {onSelected} width={totalWidth} />
 		{/each}
@@ -202,22 +202,5 @@
 		flex-direction: column;
 		overflow-y: auto;
 		overflow-x: hidden;
-	}
-	.file-list-items::-webkit-scrollbar {
-		width: 14px;
-	}
-
-	.file-list-items::-webkit-scrollbar-track {
-		background: var(--color-primary);
-	}
-
-	.file-list-items::-webkit-scrollbar-thumb {
-		background-color: var(--color-secondary);
-		border-radius: 14px;
-		border: 3px solid var(--color-primary);
-	}
-
-	.file-list-items::-webkit-scrollbar-thumb:hover {
-		border: 1px solid var(--color-primary);
 	}
 </style>

@@ -1,31 +1,33 @@
 <script lang="ts">
 	import Svg from '$lib/components/Svg.svelte';
-
-	let svgStyle =
-		'display: flex; flex-direction: row; align-items: center; justify-content: center;';
-	let pathValue = '';
-	let pathParts: string[] = [];
+	import { settings } from '$lib/stores';
 
 	const focusLoss = (e: Event) => {
-		pathValue = pathValue.replaceAll('\\', '/');
-		pathParts = pathValue.split('/');
+		$settings.currentPath = $settings.currentPath.trim().replace(/\\/g, '/');
 	};
 
+	const keydown = (e: Event) => {
+		if (e instanceof KeyboardEvent) {
+			if (e.key === 'Enter') {
+				(e.srcElement as HTMLElement).blur();
+			}
+		}
+	};
 </script>
 
 <div class="topbar">
 	<div class="topbar-left">
 		<div class="topbar-button">
-			<Svg src="/svgs/ui/arrow_left.svg" width={25} height={25} style={svgStyle} />
+			<Svg svgData={{data: {path: '/svgs/arrow/arrow_left.svg', colors: []}, width: 25, height: 25}} />
 		</div>
 		<div class="topbar-button">
-			<Svg src="/svgs/ui/arrow_right.svg" width={25} height={25} style={svgStyle} />
+			<Svg svgData={{data: {path: '/svgs/arrow/arrow_right.svg', colors: []}, width: 25, height: 25}} />
 		</div>
 		<div class="topbar-button">
-			<Svg src="/svgs/ui/arrow_up.svg" width={25} height={25} style={svgStyle} />
+			<Svg svgData={{data: {path: '/svgs/arrow/arrow_up.svg', colors: []}, width: 25, height: 25}} />
 		</div>
 		<div class="topbar-button">
-			<Svg src="/svgs/ui/arrow_repeat.svg" width={18.75} height={18.75} style={svgStyle} />
+			<Svg svgData={{data: {path: '/svgs/arrow/arrow_repeat.svg', colors: []}, width: 18.75, height: 18.75}} />
 		</div>
 	</div>
 	<input
@@ -33,9 +35,10 @@
 		placeholder="Path"
 		class="topbar-input topbar-path"
 		on:blur={focusLoss}
-		bind:value={pathValue}
+		on:keydown={keydown}
+		bind:value={$settings.currentPath}
 	/>
-	<input type="text" placeholder="Search" class="topbar-input topbar-search" />
+	<input type="text" placeholder="Search" class="topbar-input topbar-search" on:keydown={keydown} />
 </div>
 
 <style>
@@ -43,7 +46,7 @@
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-		background-color: var(--color-primary);
+		background-color: var(--color-primary-dark);
 		color: var(--color-text);
 		padding: 0 0.2em;
 		height: 100%;
@@ -63,13 +66,13 @@
 		flex-direction: row;
 		align-items: center;
 		justify-content: center;
-		background-color: var(--color-primary);
 		color: var(--color-text);
 		padding: 0.5em;
 		margin: 0 0.25em;
 		border-radius: 0.25em;
 		width: 1.2em;
 		height: 1.2em;
+		user-select: none;
 	}
 
 	.topbar-button:hover {
@@ -97,7 +100,7 @@
 	}
 
 	.topbar-input {
-		background-color: var(--color-tertiary);
+		background-color: var(--color-secondary-dark);
 		color: var(--color-text);
 		border: none;
 		outline: none;
@@ -105,11 +108,11 @@
 	}
 
 	.topbar-input::placeholder {
-		color: var(--color-quaternary);
+		color: var(--color-secondary-light);
 	}
 
 	.topbar-input:focus {
-		background-color: var(--color-primary);
+		background-color: var(--color-primary-dark);
 		border: 1px solid var(--color-secondary);
 		border-bottom: 1px solid var(--color-accent);
 	}

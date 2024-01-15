@@ -42,15 +42,25 @@
 		<div class="file-list-header-sort">
 			{#if searchIcon === 'up'}
 				<Svg
-					src="/svgs/ui/simple_arrow_down.svg"
-					width={20 * $settings.appearance.zoom}
-					height={20 * $settings.appearance.zoom}
+					svgData={{
+						data: {
+							path: '/svgs/simple_arrow/simple_arrow_up.svg',
+							colors: []
+						},
+						width: 20 * $settings.appearance.zoom,
+						height: 20 * $settings.appearance.zoom
+					}}
 				/>
 			{:else if searchIcon === 'down'}
 				<Svg
-					src="/svgs/ui/simple_arrow_up.svg"
-					width={20 * $settings.appearance.zoom}
-					height={20 * $settings.appearance.zoom}
+					svgData={{
+						data: {
+							path: '/svgs/simple_arrow/simple_arrow_down.svg',
+							colors: []
+						},
+						width: 20 * $settings.appearance.zoom,
+						height: 20 * $settings.appearance.zoom
+					}}
 				/>
 			{/if}
 		</div>

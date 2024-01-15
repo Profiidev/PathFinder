@@ -4,6 +4,10 @@
 	import { FileType } from '$lib/types';
 	import type { FileData } from '$lib/types';
 	import Topbar from '$lib/components/Topbar.svelte';
+	import Sidebar from '$lib/components/Sidebar.svelte';
+	import Bottombar from '$lib/components/Bottombar.svelte';
+	import { settings } from '$lib/stores';
+	import SvgBuilder from '$lib/components/Svg.svelte';
 
 	let testList: string[] = [];
 	let input = '';
@@ -106,12 +110,15 @@
 		<Topbar />
 	</div>
 	<div class="content-container">
-		<div class="sidebar-container">
-
+		<div class="sidebar-container" style="width: {$settings.sidebar.width}em">
+			<Sidebar />
 		</div>
-		<div class="file-list-container">
+		<div class="file-list-container" style="width: calc(100% - {$settings.sidebar.width}em)">
 			<FileList files={testData} />
 		</div>
+	</div>
+	<div class="bottombar-container">
+		<Bottombar />
 	</div>
 </div>
 <style>
@@ -135,19 +142,24 @@
 	.content-container {
 		display: flex;
 		flex-direction: row;
-		height: calc(100vh - 3.5em);
+		height: calc(100vh - 5.5em);
 		width: 100%;
-		border-top: 1px solid var(--color-secondary);
+		border-top: 1px solid var(--color-secondary-dark);
 	}
 
 	.sidebar-container {
 		height: 100%;
 		width: 10em;
-		border-right: 1px solid var(--color-secondary);
+		border-right: 1px solid var(--color-secondary-dark);
 	}
 
 	.file-list-container {
 		height: 100%;
-		width: calc(100% - 10em);
+	}
+
+	.bottombar-container {
+		height: 2em;
+		width: 100%;
+		border-top: 1px solid var(--color-secondary-dark);
 	}
 </style>

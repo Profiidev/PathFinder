@@ -10,7 +10,8 @@ export type FileData = {
 
 export enum FileType {
 	FILE = 'file',
-	DIRECTORY = 'directory'
+	DIRECTORY = 'directory',
+	DRIVE = 'drive'
 }
 
 export enum Theme {
@@ -29,12 +30,15 @@ export enum IconTheme {
 export type Settings = {
 	fileList: FileListSettings;
 	appearance: AppearanceSettings;
+	sidebar: SidebarSettings;
+	currentPath: string;
 };
 
 export type AppearanceSettings = {
 	zoom: number;
 	theme: Theme;
 	iconTheme: IconTheme;
+	viewType: ViewType;
 };
 
 export type FileListSettings = {
@@ -67,3 +71,55 @@ export type FileSelectionData = {
 	files: string[];
 	lastSelectedIndex: number;
 };
+
+export type SidebarSettings = {
+	pinnedPaths: Pinned[];
+	devices: Device[]
+	locations: IndexLocation[];
+	tags: Tag[];
+	width: number;
+	expanded: boolean[];
+};
+
+export type Tag = {
+	name: string;
+	color: string;
+};
+
+export type Device = {
+	name: string;
+	path: string;
+};
+
+export type Pinned = {
+	name: string;
+	path: string;
+	type: FileType;
+};
+
+export type IndexLocation = {
+	name: string;
+	path: string;
+	type: FileType;
+};
+
+export enum ViewType {
+	LIST = 'list',
+	GRID = 'grid'
+}
+
+export type SvgColor = {
+	key: string;
+	color: string;
+};
+
+export type SvgData = {
+	path: string;
+	colors: SvgColor[];
+}
+
+export type SvgInfo = {
+	data: SvgData;
+	width: number;
+	height: number;
+}

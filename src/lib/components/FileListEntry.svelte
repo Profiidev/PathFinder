@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Svg from './Svg.svelte';
-	import type { FileData } from '$lib/types';
+	import type { FileData, SvgInfo } from '$lib/types';
 	import { FileType } from '$lib/types';
 	import { settings, selectedFiles } from '$lib/stores';
-	import { getIconPath } from '$lib/utils/icon_resolver';
+	import { getIconData } from '$lib/utils/icon_resolver';
 
 	export let file: FileData = {
 		name: 'undefined',
@@ -18,9 +18,14 @@
 
 	export let onSelected: (e: Event, file: FileData, selected: boolean) => void = () => {};
 
-	let src = getIconPath(file.type, $settings.appearance.iconTheme);
+	let svgData = getIconData(file.type, $settings.appearance.iconTheme);
 	let selected = false;
 	let fileDataString: string[] = [];
+	let svgInfo: SvgInfo = {
+		data: svgData,
+		width: 20,
+		height: 20
+	};
 
 	$: selected = $selectedFiles.files.includes(file.name);
 	$: {
@@ -62,12 +67,23 @@
 	on:click={clickHandler}
 >
 	<div class="file-list-entry-icon">
-		<Svg {src} width={40 * $settings.appearance.zoom} height={40 * $settings.appearance.zoom} />
+		<Svg svgData={{
+			data: svgData,
+			width: 40 * $settings.appearance.zoom,
+			height: 40 * $settings.appearance.zoom
+		}} />
 	</div>
 	<div class="file-list-entry-data">
 		{#each $settings.fileList.fileListHeaders as header, i}
 			{#if header.active}
-				<div class="file-list-entry-info {header.align_text_right ? "file-list-entry-info-align-right" : ""}" style="width: {header.width}em;">{fileDataString[i]}</div>
+				<div
+					class="file-list-entry-info {header.align_text_right
+						? 'file-list-entry-info-align-right'
+						: ''}"
+					style="width: {header.width}em;"
+				>
+					{fileDataString[i]}
+				</div>
 			{/if}
 		{/each}
 	</div>
@@ -89,7 +105,7 @@
 	}
 
 	.file-list-entry-icon {
-		margin: 0.315em 0.945em 0 0.63em;
+		margin: 0 0.945em 0 0.63em;
 		pointer-events: none;
 		user-select: none;
 	}
