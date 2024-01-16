@@ -38,27 +38,42 @@ pub fn search_partial(name: String, path: String, search_type: String, is_dir: b
 }
 
 #[tauri::command]
-pub fn add_location(location: String, state: tauri::State<StateData>) -> bool {
-  let mut trees = match state.0.lock() {
-    Ok(trees) => trees,
-    Err(_) => return false,
-  };
-  let mut config = match state.2.lock() {
-    Ok(config) => config,
-    Err(_) => return false,
-  };
-  if trees.iter().any(|tree| tree.get_root().data.name == location.replace("\\", "/")) {
-      return false;
+pub async fn add_location(location: String, state: tauri::State<'_,StateData>) -> Result<bool, ()> {
+  {
+    let trees = match state.0.lock() {
+      Ok(trees) => trees,
+      Err(_) => return Ok(false),
+    };
+    let config = match state.2.lock() {
+      Ok(config) => config,
+      Err(_) => return Ok(false),
+    };
+    if trees.iter().any(|tree| tree.get_root().data.name == location.replace("\\", "/")) {
+        return Ok(false);
+    }
+
+    std::mem::drop(trees);
+    std::mem::drop(config);
   }
 
-  let tree = FileSystem::gen_tree(&location, Uuid::new_v4().to_string());
+  let tree = FileSystem::gen_tree(&location, &Uuid::new_v4().to_string()).await;
   if tree.id == "error" {
-    return false;
+    return Ok(false);
   }
+
+  let mut trees = match state.0.lock() {
+    Ok(trees) => trees,
+    Err(_) => return Ok(false),
+  };
+
+  let mut config = match state.2.lock() {
+    Ok(config) => config,
+    Err(_) => return Ok(false),
+  };
 
   config.create_tree(&tree);
   trees.push(tree);
-  true
+  Ok(true)
 }
 
 #[tauri::command]
@@ -85,24 +100,61 @@ pub fn remove_location(location: String, state: tauri::State<StateData>) -> bool
 }
 
 #[tauri::command]
-pub fn reindex_location(location: String, state: tauri::State<StateData>) -> bool {
-  let mut trees = match state.0.lock() {
-    Ok(trees) => trees,
-    Err(_) => return false,
-  };
-  let mut index = 0;
-  for tree in trees.iter() {
-    if tree.get_root().data.name == location.replace("\\", "/") {
-      break;
+pub async fn reindex_location(location: String, state: tauri::State<'_,StateData>) -> Result<bool, ()> {
+  let tree_index;
+  let id ={
+    let trees = match state.0.lock() {
+      Ok(trees) => trees,
+      Err(_) => return Ok(false),
+    };
+    let mut index = 0;
+    for tree in trees.iter() {
+      if tree.get_root().data.name == location.replace("\\", "/") {
+        break;
+      }
+      index += 1;
     }
-    index += 1;
-  }
-  if index >= trees.len() {
-    return false;
+    if index >= trees.len() {
+      return Ok(false);
+    }
+    let id = trees[index].id.clone();
+    tree_index = index;
+
+    std::mem::drop(trees);
+
+    id
+  };
+  
+  let tree = FileSystem::gen_tree(&location, &id).await;
+
+  if tree.id == "error" {
+    return Ok(false);
   }
 
-  trees[index] = FileSystem::gen_tree(&location, trees[index].id.clone());
-  true
+  let mut trees = match state.0.lock() {
+    Ok(trees) => trees,
+    Err(_) => return Ok(false),
+  };
+
+  let mut config = match state.2.lock() {
+    Ok(config) => config,
+    Err(_) => return Ok(false),
+  };
+  
+  trees[tree_index] = tree;
+  config.save_tree(&trees[tree_index]);
+
+  Ok(true)
+}
+
+#[tauri::command]
+pub fn get_locations(state: tauri::State<StateData>) -> Vec<String> {
+  let trees = state.0.lock().unwrap();
+  let mut locations = Vec::new();
+  for tree in trees.iter() {
+    locations.push(tree.get_root().data.name.clone());
+  }
+  locations
 }
 
 #[tauri::command]

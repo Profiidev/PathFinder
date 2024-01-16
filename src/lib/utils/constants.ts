@@ -76,11 +76,6 @@ export const defaultSettings = {
 			} as Pinned
 		] as Pinned[],
 		devices: [],
-		locations: [
-			{ name: 'Volume (C:)', path: 'C:/', type: FileType.DRIVE } as IndexLocation,
-			{ name: 'Volume (D:)', path: 'D:/', type: FileType.DRIVE } as IndexLocation,
-			{ name: 'Volume (E:)', path: 'E:/', type: FileType.DRIVE } as IndexLocation
-		] as IndexLocation[],
 		tags: [
 			{ name: 'Important', color: '#ff0000' } as Tag,
 			{ name: 'Work', color: '#00ff00' } as Tag,

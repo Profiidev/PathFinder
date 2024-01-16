@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { pressedKeys, settings } from '$lib/stores';
-	import { getPrimaryColor, getSecondaryColor } from '$lib/utils/icon_resolver';
+	import { getPrimaryColor as getAccentColor, getSecondaryColor as getAccentColorDark } from '$lib/utils/icon_resolver';
+	import { getPrimaryColor, getPrimaryDarkColor, getSecondaryColor, getSecondaryLightColor, getSecondaryDarkColor, getTextColor } from '$lib/utils/theme';
+	import { load } from '$lib/start';
+	import { onMount } from 'svelte';
 
 	const keyDownHandler = (e: KeyboardEvent) => {
 		pressedKeys.update((keys) => {
@@ -19,9 +22,21 @@
 	};
 
 	$: $settings.appearance.iconTheme, 
-		document.body.style.setProperty('--color-accent', "#" + getPrimaryColor($settings.appearance.iconTheme)),
-		document.body.style.setProperty('--color-accent-dark', "#" + getSecondaryColor($settings.appearance.iconTheme))
+		document.body.style.setProperty('--color-accent', "#" + getAccentColor($settings.appearance.iconTheme)),
+		document.body.style.setProperty('--color-accent-dark', "#" + getAccentColorDark($settings.appearance.iconTheme))
+
+	$: $settings.appearance.theme, 
+		document.body.style.setProperty('--color-primary', getPrimaryColor($settings.appearance.theme)),
+		document.body.style.setProperty('--color-primary-dark', getPrimaryDarkColor($settings.appearance.theme)),
+		document.body.style.setProperty('--color-secondary', getSecondaryColor($settings.appearance.theme)),
+		document.body.style.setProperty('--color-secondary-dark', getSecondaryDarkColor($settings.appearance.theme)),
+		document.body.style.setProperty('--color-secondary-light', getSecondaryLightColor($settings.appearance.theme)),
+		document.body.style.setProperty('--color-text', getTextColor($settings.appearance.theme))
+
 	
+	onMount(() => {
+		load();
+	});
 </script>
 
 <svelte:window on:keydown={keyDownHandler} on:keyup={keyUpHandler} />

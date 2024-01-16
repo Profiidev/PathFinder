@@ -75,7 +75,6 @@ export type FileSelectionData = {
 export type SidebarSettings = {
 	pinnedPaths: Pinned[];
 	devices: Device[]
-	locations: IndexLocation[];
 	tags: Tag[];
 	width: number;
 	expanded: boolean[];
@@ -122,4 +121,10 @@ export type SvgInfo = {
 	data: SvgData;
 	width: number;
 	height: number;
+}
+
+export type LocationData = {
+	name: string;
+	path: string;
+	type: FileType;
 }

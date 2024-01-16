@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use std::fs;
+use std::{fs, panic, thread, sync::atomic::{AtomicUsize, Ordering}, cell::RefCell};
 use crate::{tree::{Tree, Node}, config::Config};
 
 #[derive(Debug, Serialize, Clone, Deserialize)]
@@ -30,6 +30,8 @@ impl File {
 
 pub struct FileSystem;
 
+static THREAD_COUNT: AtomicUsize = AtomicUsize::new(0);
+
 impl FileSystem {
   pub fn load_locations(config: &mut Config) -> Vec<Tree> {
     let mut trees = Vec::new();
@@ -39,12 +41,12 @@ impl FileSystem {
     trees
   }
 
-  pub fn gen_tree(location: &str, id: String) -> Tree {
+  pub async fn gen_tree(location: &str, id: &str) -> Tree {
     let root = Node::new(File {
       name: location.to_string().replace("\\", "/"),
       is_dir: true
     });
-    let mut tree = Tree::new(root, id);
+    let mut tree = Tree::new(root, id.to_string());
     let mut children = Vec::new();
 
     let child_dirs = match fs::read_dir(location.to_string() + "/") {
@@ -70,9 +72,31 @@ impl FileSystem {
 
     File::sort_files(&mut child_dirs_file);
 
+    let mut child_threads = Vec::new();
+
     for file in child_dirs_file {
       if file.is_dir && !file.name.starts_with("$") {
-        children.push(FileSystem::traverse_files(location, &file.name));
+        THREAD_COUNT.fetch_add(1, Ordering::SeqCst);
+
+        let location = RefCell::new(location.to_string());
+        let file_name = RefCell::new(file.name.clone());
+
+        child_threads.push(thread::spawn(move || {
+          let result = panic::catch_unwind(move || {
+
+            let location = location.borrow();
+            let file_name = file_name.borrow();
+
+            FileSystem::traverse_files(&location, &file_name)
+          });
+
+          match result {
+              _ => {}
+          }
+          THREAD_COUNT.fetch_sub(1, Ordering::SeqCst);
+
+          result
+        }));
       } else {
         children.push(Node::new(File {
           name: file.name,
@@ -80,6 +104,26 @@ impl FileSystem {
         }));
       }
     }
+
+    while THREAD_COUNT.load(Ordering::SeqCst) > 0 {
+      thread::sleep(std::time::Duration::from_millis(1));
+    }
+
+    for child_thread in child_threads {
+      let child = child_thread.join().unwrap();
+      match child {
+        Ok(child) => {
+          children.push(child);
+        },
+        Err(_) => {
+          print!("Error reading directory: {}", location);
+          tree.id = "error".to_string();
+          return tree;
+        }
+      }
+    }
+
+    children.sort_by(|a, b| {a.compare(&b.data)});
 
     tree.get_root_mut().add_children(children);
 

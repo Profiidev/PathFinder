@@ -2,6 +2,8 @@
 	import { settings } from '$lib/stores';
 	import Svg from '$lib/components/Svg.svelte';
 	import { SortType } from '$lib/types';
+	import type { SvgColor } from '$lib/types';
+	import { getTextColor } from '$lib/utils/theme';
 
 	export let width = 0;
 	export let text = '';
@@ -12,7 +14,9 @@
 
 	let searchIcon = 'none';
 	let element: HTMLElement;
+	let iconColors: SvgColor[] = [];
 
+	$: iconColors = [{ key: "#FFFFFF", color: getTextColor($settings.appearance.theme) }];
 	$: {
 		if (type === $settings.fileList.sortType) {
 			if ($settings.fileList.sortAscending) {
@@ -45,7 +49,7 @@
 					svgData={{
 						data: {
 							path: '/svgs/simple_arrow/simple_arrow_up.svg',
-							colors: []
+							colors: iconColors
 						},
 						width: 20 * $settings.appearance.zoom,
 						height: 20 * $settings.appearance.zoom
@@ -56,7 +60,7 @@
 					svgData={{
 						data: {
 							path: '/svgs/simple_arrow/simple_arrow_down.svg',
-							colors: []
+							colors: iconColors
 						},
 						width: 20 * $settings.appearance.zoom,
 						height: 20 * $settings.appearance.zoom

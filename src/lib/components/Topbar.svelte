@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Svg from '$lib/components/Svg.svelte';
 	import { settings } from '$lib/stores';
+	import { getTextColor } from '$lib/utils/theme';
+	import type { SvgColor } from '$lib/types';
 
 	let pathVisualizerVisible = true;
 	let pathInput: HTMLInputElement;
@@ -27,23 +29,49 @@
 	};
 
 	let pathParts: string[] = [];
+	let iconColors: SvgColor[] = [];
 
 	$: pathParts = $settings.currentPath.split('/').filter((part) => part !== '');
+	$: iconColors = [{ key: '#FFFFFF', color: getTextColor($settings.appearance.theme) }];
 </script>
 
 <div class="topbar">
 	<div class="topbar-left">
 		<div class="topbar-button">
-			<Svg svgData={{data: {path: '/svgs/arrow/arrow_left.svg', colors: []}, width: 25, height: 25}} />
+			<Svg
+				svgData={{
+					data: { path: '/svgs/arrow/arrow_left.svg', colors: iconColors },
+					width: 25,
+					height: 25
+				}}
+			/>
 		</div>
 		<div class="topbar-button">
-			<Svg svgData={{data: {path: '/svgs/arrow/arrow_right.svg', colors: []}, width: 25, height: 25}} />
+			<Svg
+				svgData={{
+					data: { path: '/svgs/arrow/arrow_right.svg', colors: iconColors },
+					width: 25,
+					height: 25
+				}}
+			/>
 		</div>
 		<div class="topbar-button">
-			<Svg svgData={{data: {path: '/svgs/arrow/arrow_up.svg', colors: []}, width: 25, height: 25}} />
+			<Svg
+				svgData={{
+					data: { path: '/svgs/arrow/arrow_up.svg', colors: iconColors },
+					width: 25,
+					height: 25
+				}}
+			/>
 		</div>
 		<div class="topbar-button">
-			<Svg svgData={{data: {path: '/svgs/arrow/arrow_repeat.svg', colors: []}, width: 18.75, height: 18.75}} />
+			<Svg
+				svgData={{
+					data: { path: '/svgs/arrow/arrow_repeat.svg', colors: iconColors },
+					width: 18.75,
+					height: 18.75
+				}}
+			/>
 		</div>
 	</div>
 	<div class="topbar-path-container" bind:clientWidth={pathWidth}>
@@ -64,7 +92,10 @@
 	<div class="path-visualizer" style="max-width: {pathWidth}px;">
 		{#if pathParts.length > 0 && pathVisualizerVisible}
 			{#each pathParts as part, index}
-				<div class="path-visualizer-part" style="{index === 0 ? "padding-left: .5em;" : ""}">
+				<div
+					class="path-visualizer-part"
+					style={index === 0 ? 'padding-left: .2em; margin-left: .3em;' : ''}
+				>
 					<span>{part}</span>
 				</div>
 				{#if index !== pathParts.length - 1}
@@ -195,12 +226,12 @@
 		height: 70%;
 		border-radius: 0.25em;
 		cursor: pointer;
-		padding: 0 .2em;
-		min-width: .6em;
+		padding: 0 0.2em;
+		min-width: 0.6em;
 	}
 
 	.path-visualizer-part span {
-		font-size: 0.8em;
+		font-size: 1em;
 		width: 100%;
 		overflow: hidden;
 		text-overflow: ellipsis;

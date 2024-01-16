@@ -2,7 +2,7 @@
 	import SidebarEntry from '$lib/components/SidebarEntry.svelte';
 	import SidebarSection from '$lib/components/SidebarSection.svelte';
 	import Svg from '$lib/components/Svg.svelte';
-	import { settings } from '$lib/stores';
+	import { settings, locations } from '$lib/stores';
 	import { getIconData, getSecondaryColor, getPrimaryColor } from '$lib/utils/icon_resolver';
 	import { sidebarMinWidth } from '$lib/utils/constants';
 	import { FileType } from '$lib/types';
@@ -72,7 +72,7 @@
 			{/each}
 		</SidebarSection>
 		<SidebarSection index={2} text="Locations">
-			{#each $settings.sidebar.locations as location}
+			{#each $locations as location}
 				<SidebarEntry
 					svgData={getIconData(location.type, $settings.appearance.iconTheme)}
 					text={location.name}
