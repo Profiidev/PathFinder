@@ -6,13 +6,13 @@
 	import Topbar from '$lib/components/Topbar.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import Bottombar from '$lib/components/Bottombar.svelte';
-	import { settings } from '$lib/stores';
-	import SvgBuilder from '$lib/components/Svg.svelte';
+	import Settings from '$lib/components/Settings.svelte';
+	import { settings, loadedFiles, settingsEnabled } from '$lib/stores';
 
 	let testList: string[] = [];
 	let input = '';
 	let count = 0;
-	let path = 'C:/Users/benja/Documents/Coding/Apps/FileExplorer';
+	let path = 'C:';
 
 	const search = async () => {
 		const res = await invoke('search_partial', {
@@ -31,6 +31,7 @@
 		}
 		testList = data.map((item) => item.name);
 		count = testList.length;
+		console.log(testList);
 	};
 
 	const addLocation = async () => {
@@ -92,7 +93,7 @@
 	};
 
 	let testData: FileData[] = [];
-	for (let i = 0; i < 100; i++) {
+	for (let i = 0; i < 10; i++) {
 		testData.push({
 			name: `test${i}`,
 			type: FileType.DIRECTORY,
@@ -103,23 +104,28 @@
 			permissions: 'read'
 		} as FileData);
 	}
+	$loadedFiles = testData;
 </script>
 
 <div class="container">
-	<div class="topbar-container">
-		<Topbar />
-	</div>
-	<div class="content-container">
-		<div class="sidebar-container" style="width: {$settings.sidebar.width}em">
-			<Sidebar />
+	{#if !$settingsEnabled}
+		<div class="topbar-container">
+			<Topbar />
 		</div>
-		<div class="file-list-container" style="width: calc(100% - {$settings.sidebar.width}em)">
-			<FileList files={testData} />
+		<div class="content-container">
+			<div class="sidebar-container" style="width: {$settings.sidebar.width}em">
+				<Sidebar />
+			</div>
+			<div class="file-list-container" style="width: calc(100% - {$settings.sidebar.width}em)">
+				<FileList />
+			</div>
 		</div>
-	</div>
-	<div class="bottombar-container">
-		<Bottombar />
-	</div>
+		<div class="bottombar-container">
+			<Bottombar />
+		</div>
+	{:else}
+		<Settings />
+	{/if}
 </div>
 <style>
 	.container {

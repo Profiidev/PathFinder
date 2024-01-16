@@ -3,10 +3,11 @@
 	import { SortType, FileType } from '$lib/types';
 	import FileListEntry from './FileListEntry.svelte';
 	import FileListHeaderEntry from './FileListHeaderEntry.svelte';
-	import { settings, pressedKeys, selectedFiles } from '$lib/stores';
+	import { settings, pressedKeys, selectedFiles, loadedFiles } from '$lib/stores';
 	import { fileListHeaderMinWidth, zoomStep, maxZoom, minZoom } from '$lib/utils/constants';
 
-	export let files: FileData[] = [];
+	let files: FileData[] = [];
+	$: files = $loadedFiles;
 
 	$: files = files.sort((a, b) => {
 		let result = $settings.fileList.sortAscending ? 1 : -1;

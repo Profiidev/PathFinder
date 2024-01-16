@@ -25,7 +25,7 @@
 		fetch(svgData.data.path)
 			.then((res) => res.text())
 			.then((data) => {
-				svgData.data.colors.forEach((color) => {
+				svgData.data.colors?.forEach((color) => {
 					data = data.replace(new RegExp(color.key, 'g'), color.color);
 				});
 				svg = data;

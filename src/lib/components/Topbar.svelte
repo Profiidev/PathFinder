@@ -1,8 +1,6 @@
 <script lang="ts">
 	import Svg from '$lib/components/Svg.svelte';
 	import { settings } from '$lib/stores';
-	import { FileType } from '$lib/types';
-	import { getIconData } from '$lib/utils/icon_resolver';
 
 	let pathVisualizerVisible = true;
 	let pathInput: HTMLInputElement;
@@ -66,16 +64,7 @@
 	<div class="path-visualizer" style="max-width: {pathWidth}px;">
 		{#if pathParts.length > 0 && pathVisualizerVisible}
 			{#each pathParts as part, index}
-				<div class="path-visualizer-part" style="{index === 0 ? "padding-left: 0;" : ""}">
-					{#if index !== 0}
-						<Svg
-							svgData={{
-								data: getIconData(FileType.DIRECTORY, $settings.appearance.iconTheme),
-								width: 15,
-								height: 15
-							}}
-						/>
-					{/if}
+				<div class="path-visualizer-part" style="{index === 0 ? "padding-left: .5em;" : ""}">
 					<span>{part}</span>
 				</div>
 				{#if index !== pathParts.length - 1}
@@ -207,11 +196,10 @@
 		border-radius: 0.25em;
 		cursor: pointer;
 		padding: 0 .2em;
-		min-width: 1em;
+		min-width: .6em;
 	}
 
 	.path-visualizer-part span {
-		margin-left: 0.4em;
 		font-size: 0.8em;
 		width: 100%;
 		overflow: hidden;

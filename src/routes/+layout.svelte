@@ -20,8 +20,7 @@
 
 	$: $settings.appearance.iconTheme, 
 		document.body.style.setProperty('--color-accent', "#" + getPrimaryColor($settings.appearance.iconTheme)),
-		document.body.style.setProperty('--color-accent-dark', "#" + getSecondaryColor($settings.appearance.iconTheme)),
-		console.log(document.body.style)
+		document.body.style.setProperty('--color-accent-dark', "#" + getSecondaryColor($settings.appearance.iconTheme))
 	
 </script>
 
@@ -42,6 +41,11 @@
 		--color-accent-dark: #002ab6;
 
 		--color-text: rgb(255, 255, 255);
+
+		overflow: hidden;
+		position: fixed;
+		width: 100vw;
+		height: 100vh;
 	}
 
 	:global(.reset-button) {
