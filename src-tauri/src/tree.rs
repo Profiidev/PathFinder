@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, fs, time::UNIX_EPOCH, os::windows::prelude::*};
+use std::{cmp::Ordering, fs, os::windows::prelude::*};
 use serde::{Serialize, Deserialize};
 use crate::file::{File, FileData};
 
@@ -35,22 +35,22 @@ impl Tree {
         self.root.data.name.clone()
     }
 
-    fn search(origin: &Node, data: &File, search_type: &TreeSearchType) -> Vec<File>{
+    fn search(origin: &Node, start_path: String, data: &File, search_type: &TreeSearchType) -> Vec<FileData>{
         match search_type {
-            TreeSearchType::Exact => origin.search(data, &|a, b| a.name == b.name && a.is_dir == b.is_dir),
-            TreeSearchType::Contains => origin.search(data, &|a, b| a.name.contains(&b.name) && a.is_dir == b.is_dir),
-            TreeSearchType::StartsWith => origin.search(data, &|a, b| a.name.starts_with(&b.name) && a.is_dir == b.is_dir),
-            TreeSearchType::ExactNoType => origin.search(data, &|a, b| a.name == b.name),
-            TreeSearchType::ContainsNoType => origin.search(data, &|a, b| a.name.contains(&b.name)),
-            TreeSearchType::StartsWithNoType => origin.search(data, &|a, b| a.name.starts_with(&b.name)),
+            TreeSearchType::Exact => origin.search(data, start_path, &|a, b| a.name.to_lowercase() == b.name.to_lowercase() && a.is_dir == b.is_dir),
+            TreeSearchType::Contains => origin.search(data, start_path, &|a, b| a.name.to_lowercase().contains(&b.name.to_lowercase()) && a.is_dir == b.is_dir),
+            TreeSearchType::StartsWith => origin.search(data, start_path, &|a, b| a.name.to_lowercase().starts_with(&b.name.to_lowercase()) && a.is_dir == b.is_dir),
+            TreeSearchType::ExactNoType => origin.search(data, start_path, &|a, b| a.name.to_lowercase() == b.name.to_lowercase()),
+            TreeSearchType::ContainsNoType => origin.search(data, start_path, &|a, b| a.name.to_lowercase().contains(&b.name.to_lowercase())),
+            TreeSearchType::StartsWithNoType => origin.search(data, start_path, &|a, b| a.name.to_lowercase().starts_with(&b.name.to_lowercase())),
         }
     }
 
-    pub fn search_partial(&self, path: &str, data: &File, search_type: &TreeSearchType) -> Vec<File> {
-        let path = parse_path(path, &self.root.data.name);
-        match self.root.find_from_path(path) {
+    pub fn search_partial(&self, path: &str, data: &File, search_type: &TreeSearchType) -> Vec<FileData> {
+        let path_vec = parse_path(path, &self.root.data.name);
+        match self.root.find_from_path(path_vec) {
             Some(node) => {
-                Tree::search(node, data, search_type)
+                Tree::search(node, path.to_string(), data, search_type)
             },
             None => Vec::new(),
         }
@@ -78,6 +78,24 @@ impl Tree {
     pub fn get_files(&self, path: &str) -> Vec<FileData> {
         let path_vec = parse_path(path, &self.root.data.name);
         self.root.get_files(path_vec, path)
+    }
+
+    pub fn get_file_size(&self, path: &str) -> u64 {
+        let path_vec = parse_path(path, &self.root.data.name);
+        match self.root.find_from_path(path_vec) {
+            Some(node) => {
+                if node.data.is_dir {
+                    return 0;
+                }
+                return node.data.size;
+            },
+            None => 0,
+        }
+    }
+
+    pub fn edit_file_size(&mut self, path: &str, size: u64) {
+        let path_vec = parse_path(path, &self.root.data.name);
+        self.root.edit_file_size(path_vec, size);
     }
 }
 
@@ -118,13 +136,20 @@ impl Node {
         }
     }
 
-    pub fn search(&self, data: &File, comparator: &dyn Fn(File, File) -> bool) -> Vec<File> {
+    pub fn search(&self, data: &File, current_path: String, comparator: &dyn Fn(File, File) -> bool) -> Vec<FileData> {
         let mut found = Vec::new();
         if comparator(self.data.clone(), data.clone()) {
-            found.push(self.data.clone());
+            found.push(FileData {
+                file: self.data.clone(),
+                path: current_path.clone(),
+                last_modified_date: None,
+                created_date: None,
+                permissions: None,
+                hidden: None,
+            });
         }
         for child in &self.children {
-            found.extend(child.search(data, comparator));
+            found.extend(child.search(data, format!("{}/{}", &current_path, &child.data.name), comparator));
         }
         found
     }
@@ -199,6 +224,21 @@ impl Node {
         Vec::new()
     }
 
+    pub fn edit_file_size(&mut self, mut path: Vec<String>, size: u64) {
+        let next = path.remove(0);
+        self.data.size += size;
+        for child in &mut self.children {
+            if child.data.name == next {
+                if path.len() == 0 {
+                    child.data.size += size;
+                    return;
+                }
+                child.edit_file_size(path, size);
+                return;
+            }
+        }
+    }
+
     fn get_file_data(&self, absolute_path: &str) -> Option<FileData> {
         let metadata = match fs::metadata(format!("{}/{}", absolute_path, self.data.name)) {
             Ok(metadata) => metadata,
@@ -208,38 +248,20 @@ impl Node {
             }
         };
 
-        let modified = match metadata.modified() {
-            Ok(modified) => match modified.duration_since(UNIX_EPOCH) {
-                Ok(duration) => duration.as_secs(),
-                Err(_) => 0,
-            },
-            Err(_) => 0,
-        };
-
-        let created = match metadata.created() {
-            Ok(created) => match created.duration_since(UNIX_EPOCH) {
-                Ok(duration) => duration.as_secs(),
-                Err(_) => 0,
-            },
-            Err(_) => 0,
-        };
-
         let attributes = metadata.file_attributes();
         if attributes & 4 == 4 {
             return None;
         }
-        
-        Some(FileData {
-            file: File {
-                name: self.data.name.clone(),
-                is_dir: self.data.is_dir,
-            },
-            path: absolute_path.to_string().clone(),
-            size: Some(metadata.len()),
-            last_modified_date: Some(modified),
-            created_date: Some(created),
-            permissions: Some(metadata.permissions().readonly()),
-            hidden: Some(attributes & 2 == 2),
-        })
+
+        let mut file_data = FileData {
+            file: self.data.clone(),
+            path: format!("{}/{}", absolute_path, self.data.name),
+            last_modified_date: None,
+            created_date: None,
+            permissions: None,
+            hidden: None,
+        };
+        file_data.update_file_data();
+        Some(file_data)
     }
 }

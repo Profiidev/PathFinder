@@ -4,9 +4,11 @@
 	import { getTextColor } from '$lib/utils/theme';
 	import type { SvgColor } from '$lib/types';
 	import { loadFiles } from '$lib/backend/files';
+	import { search } from '$lib/backend/search';
 
 	let pathVisualizerVisible = true;
 	let pathInput: HTMLInputElement;
+	let searchInput: HTMLInputElement;
 	let pathWidth: number = 0;
 
 	$: pathWidth = pathInput?.offsetWidth;
@@ -28,6 +30,7 @@
 		if (e instanceof KeyboardEvent) {
 			if (e.key === 'Enter') {
 				pathInput.blur();
+				searchInput.blur();
 			}
 		}
 	};
@@ -40,14 +43,24 @@
 
 	const gotToParent = () => {
 		if (pathParts.length > 0) {
-			$settings.currentPath = $settings.currentPath.split('/').filter(p => p !== "").slice(0, -1).join('/') + '/';
-			if($settings.currentPath === '/') $settings.currentPath = 'C:/';
+			$settings.currentPath =
+				$settings.currentPath
+					.split('/')
+					.filter((p) => p !== '')
+					.slice(0, -1)
+					.join('/') + '/';
+			if ($settings.currentPath === '/') $settings.currentPath = 'C:/';
 		}
 	};
 
 	const goToPathPart = (index: number) => {
 		if (index < pathParts.length) {
-			$settings.currentPath = $settings.currentPath.split('/').filter(p => p !== "").slice(0, index + 1).join('/') + '/';
+			$settings.currentPath =
+				$settings.currentPath
+					.split('/')
+					.filter((p) => p !== '')
+					.slice(0, index + 1)
+					.join('/') + '/';
 		}
 	};
 
@@ -66,6 +79,30 @@
 			$settings.currentPath = $pathHistory.paths[$pathHistory.currentIndex];
 		}
 	};
+
+	let searchValue: string = '';
+	let searching: boolean = false;
+
+	$: searchValue,
+		updatedSearch();
+
+	const updatedSearch = () => {
+		if(searchValue !== '') {
+			if(searching) {
+				search(searchValue);
+			}
+		} else {
+			loadFiles();
+		}
+	}
+
+	const onSearchFocus = () => {
+		searching = true;
+	}
+
+	const onSearchBlur = () => {
+		searching = false;
+	}
 </script>
 
 <div class="topbar">
@@ -120,7 +157,16 @@
 		/>
 	</div>
 	<div class="topbar-spacing"></div>
-	<input type="text" placeholder="Search" class="topbar-input topbar-search" on:keydown={keydown} />
+	<input
+		type="text"
+		placeholder="Search"
+		class="topbar-input topbar-search"
+		on:blur={onSearchBlur}
+		on:focus={onSearchFocus}
+		on:keydown={keydown}
+		bind:this={searchInput}
+		bind:value={searchValue}
+	/>
 
 	<div class="path-visualizer" style="max-width: {pathWidth}px;">
 		{#if pathParts.length > 0 && pathVisualizerVisible}

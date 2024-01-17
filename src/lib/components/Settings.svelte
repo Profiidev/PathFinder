@@ -101,11 +101,11 @@
 			{/each}
 		</div>
 		<div class="tabs-bottom">
-			<button class="close-button reset-button" on:click={() => closeSettings}>
+			<button class="close-button reset-button" on:click={closeSettings}>
 				<Svg
 					svgData={{
 						data: {
-							path: '/svgs/ui/settings.svg',
+							path: '/svgs/arrow/arrow_left.svg',
 							colors: [{ key: 'FFFFFF', color: '9292a0' }]
 						},
 						width: 20,

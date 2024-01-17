@@ -3,6 +3,7 @@ use std::path::{PathBuf, Path};
 use notify::{Event, EventKind, RecursiveMode, Watcher, ReadDirectoryChangesWatcher};
 use notify::event::{ModifyKind, RenameMode, CreateKind};
 use tauri::Manager;
+use filesize::PathExt;
 use crate::file::{File, FileData};
 use crate::tree::Tree;
 use crate::StateData;
@@ -90,7 +91,9 @@ impl FileUpdateHandler {
                             RenameMode::Both => {
                                 handle_file_rename(event.paths.clone(), trees);
                             },
-                            _ => (),
+                            _ => {
+                                handle_file_update(event.paths.clone(), trees);
+                            },
                         }
                     },
                     _ => (),
@@ -171,12 +174,42 @@ fn handle_file_rename(paths: Vec<PathBuf>, trees: &mut Vec<Tree>) {
     }
 }
 
+fn handle_file_update(paths: Vec<PathBuf>, trees: &mut Vec<Tree>) {
+    let file = get_file(paths[0].clone());
+    let path = file.path.clone();
+
+    let metadata = match fs::metadata(&path) {
+        Ok(metadata) => metadata,
+        Err(_) => {
+            println!("Error reading metadata for file: {}", path);
+            return;
+        }
+    };
+
+    let mut size = metadata.len();
+      if size > 100000 {
+        size = match PathBuf::from(&path).size_on_disk_fast(&metadata) {
+          Ok(size) => size,
+          Err(_) => 0,
+        };
+      }
+
+    for tree in trees {
+        if !tree.is_in_tree(&path) {
+            continue;
+        }
+
+        tree.edit_file_size(&path, size - tree.get_file_size(&path));
+    }
+}
+
 fn get_file(path: PathBuf) -> FileData {
     let path = path.to_str().unwrap().replace("\\", "/");
 
     let mut file = File {
         name: path.split("/").last().unwrap().to_string(),
         is_dir: false,
+        size: 0,
     };
 
     let metadata = match fs::metadata(&path) {
@@ -186,7 +219,6 @@ fn get_file(path: PathBuf) -> FileData {
             return FileData {
                 file,
                 path,
-                size: None,
                 last_modified_date: None,
                 created_date: None,
                 permissions: None,
@@ -200,7 +232,6 @@ fn get_file(path: PathBuf) -> FileData {
     FileData {
         file,
         path,
-        size: None,
         last_modified_date: None,
         created_date: None,
         permissions: None,

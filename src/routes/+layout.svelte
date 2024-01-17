@@ -33,6 +33,22 @@
 		});
 	};
 
+	const mouseKeyDownHandler = (e: MouseEvent) => {
+		pressedKeys.update((keys) => {
+			if (!keys.includes('mouse' + e.button)) {
+				return [...keys, 'mouse' + e.button];
+			} else {
+				return keys;
+			}
+		});
+	};
+
+	const mouseKeyUpHandler = (e: MouseEvent) => {
+		pressedKeys.update((keys) => {
+			return keys.filter((key) => key !== 'mouse' + e.button);
+		});
+	};
+
 	$: $settings.appearance.iconTheme,
 		document.body.style.setProperty(
 			'--color-accent',
@@ -90,7 +106,12 @@
 	});
 </script>
 
-<svelte:window on:keydown={keyDownHandler} on:keyup={keyUpHandler} />
+<svelte:window
+	on:keydown={keyDownHandler}
+	on:keyup={keyUpHandler}
+	on:mousedown={mouseKeyDownHandler}
+	on:mouseup={mouseKeyUpHandler}
+/>
 <slot />
 
 <style>

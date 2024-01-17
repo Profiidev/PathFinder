@@ -29,7 +29,7 @@ pub fn get_settings(state: tauri::State<StateData>) -> String {
 }
 
 #[tauri::command]
-pub fn search_partial(name: String, path: String, search_type: String, is_dir: bool, state: tauri::State<StateData>) -> Vec<File> {
+pub async fn search_partial(name: String, path: String, search_type: String, is_dir: bool, index_start: i32, index_end: i32, state: tauri::State<'_,StateData>) -> Result<Vec<FileData>, ()> {
   let mut found = Vec::new();
   let path = path.replace("\\", "/");
 
@@ -40,12 +40,12 @@ pub fn search_partial(name: String, path: String, search_type: String, is_dir: b
     "exact_no_type" => TreeSearchType::ExactNoType,
     "contains_no_type" => TreeSearchType::ContainsNoType,
     "starts_with_no_type" => TreeSearchType::StartsWithNoType,
-    _ => return found,
+    _ => return Ok(found),
   };
 
   let trees = match state.0.lock() {
     Ok(trees) => trees,
-    Err(_) => return found,
+    Err(_) => return Ok(found),
   };
   for tree in trees.iter() {
     if !tree.is_in_tree(&path) {
@@ -54,7 +54,8 @@ pub fn search_partial(name: String, path: String, search_type: String, is_dir: b
 
     found = tree.search_partial(&path, &File {
       name: name.clone(),
-      is_dir: is_dir
+      is_dir: is_dir,
+      size: 0,
     }, &search_type_enum);
 
     if found.len() > 0 {
@@ -62,7 +63,26 @@ pub fn search_partial(name: String, path: String, search_type: String, is_dir: b
     }
   }
 
-  found
+  if index_end == -1 {
+    found.iter_mut().for_each(|file| file.update_file_data());
+    return Ok(found);
+  }
+
+  let index_start = index_start as usize;
+  let index_end = index_end as usize;
+
+  if index_start >= found.len() {
+    return Ok(Vec::new());
+  }
+
+  if index_end >= found.len() {
+    found = found[index_start..].to_vec();
+  } else {
+    found = found[index_start..index_end].to_vec();
+  }
+
+  found.iter_mut().for_each(|file| file.update_file_data());
+  Ok(found)
 }
 
 #[tauri::command]

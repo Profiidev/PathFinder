@@ -1,38 +1,10 @@
 <script lang="ts">
-	import { invoke } from '@tauri-apps/api/tauri';
 	import FileList from '$lib/components/FileList.svelte';
-	import { FileType } from '$lib/types';
-	import type { FileData } from '$lib/types';
 	import Topbar from '$lib/components/Topbar.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import Bottombar from '$lib/components/Bottombar.svelte';
 	import Settings from '$lib/components/Settings.svelte';
-	import { settings, loadedFiles, settingsEnabled } from '$lib/stores';
-
-	let testList: string[] = [];
-	let input = '';
-	let count = 0;
-	let path = 'C:';
-
-	const search = async () => {
-		const res = await invoke('search_partial', {
-			name: input,
-			path,
-			searchType: 'contains_no_type',
-			isDir: false
-		}).catch((err) => {
-			console.log(err);
-		});
-		let data = res as { is_dir: boolean; name: string }[];
-		if (data == null) {
-			testList = [];
-			count = 0;
-			return;
-		}
-		testList = data.map((item) => item.name);
-		count = testList.length;
-		console.log(testList);
-	};
+	import { settings, settingsEnabled } from '$lib/stores';
 </script>
 
 <div class="container">

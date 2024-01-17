@@ -14,7 +14,7 @@ export const loadFiles = async () => {
 			name: file.file.name as string,
 			path: file.path as string,
 			type: file.file.is_dir ? FileType.DIRECTORY : FileType.FILE,
-			size: file.size as number,
+			size: file.file.size as number,
 			lastModifiedDate: file.last_modified_date as number,
 			createdDate: file.created_date as number,
       permissions: file.permissions as string,

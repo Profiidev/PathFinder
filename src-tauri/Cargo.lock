@@ -66,6 +66,7 @@ checksum = "080e9890a082662b09c1ad45f567faeeb47f22b5fb23895fbe1e651e718e25ca"
 name = "app"
 version = "0.1.0"
 dependencies = [
+ "filesize",
  "notify",
  "serde",
  "serde_json",
@@ -686,6 +687,15 @@ checksum = "38e2275cc4e4fc009b0669731a1e5ab7ebf11f469eaede2bab9309a5b4d6057f"
 dependencies = [
  "memoffset",
  "rustc_version",
+]
+
+[[package]]
+name = "filesize"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12d741e2415d4e2e5bd1c1d00409d1a8865a57892c2d689b504365655d237d43"
+dependencies = [
+ "winapi",
 ]
 
 [[package]]

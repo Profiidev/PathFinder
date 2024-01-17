@@ -9,7 +9,12 @@ pub struct Config {
 }
 
 impl Config {
-  pub fn load(path: &str) -> Config {
+  pub fn new(path: &str) -> Config {
+    create_all_dirs(path);
+    Config::load(path)
+  }
+
+  fn load(path: &str) -> Config {
     let config = Config {
       path: path.to_string(),
       settings: match path_exists(&(path.to_string() + "/settings.json")) {

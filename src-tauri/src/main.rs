@@ -20,7 +20,7 @@ static APP: TauriApp = TauriApp {
 };
 
 fn main() {
-  let mut config = Config::load("../test_config");
+  let mut config = Config::new("../test_config");
 
   let trees = FileSystem::load_locations(&mut config);
   let event_handler = FileUpdateHandler::inti_locations(&trees.iter().map(|tree| tree.get_root_location()).collect::<Vec<String>>());

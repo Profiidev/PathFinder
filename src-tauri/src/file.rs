@@ -1,22 +1,55 @@
 use serde::{Serialize, Deserialize};
-use std::{fs, panic, thread, sync::atomic::{AtomicUsize, Ordering}, cell::RefCell};
+use std::{fs, panic, thread, sync::atomic::{AtomicUsize, Ordering}, cell::RefCell, time::UNIX_EPOCH, os::windows::prelude::*};
+use filesize::PathExt;
 use crate::{tree::{Tree, Node}, config::Config};
 
 #[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct File {
   pub name: String,
   pub is_dir: bool,
+  pub size: u64,
 }
 
 #[derive(Debug, Serialize, Clone)]
 pub struct FileData {
   pub file: File,
   pub path: String,
-	pub size: Option<u64>,
 	pub last_modified_date: Option<u64>,
 	pub created_date: Option<u64>,
 	pub permissions: Option<bool>,
   pub hidden: Option<bool>,
+}
+
+impl FileData {
+  pub fn update_file_data(&mut self) {
+    let metadata = match fs::metadata(format!("{}/{}", self.path, self.file.name)) {
+      Ok(metadata) => metadata,
+      Err(_) => return,
+    };
+
+    let modified = match metadata.modified() {
+        Ok(modified) => match modified.duration_since(UNIX_EPOCH) {
+            Ok(duration) => duration.as_secs(),
+            Err(_) => 0,
+        },
+        Err(_) => 0,
+    };
+
+    let created = match metadata.created() {
+        Ok(created) => match created.duration_since(UNIX_EPOCH) {
+            Ok(duration) => duration.as_secs(),
+            Err(_) => 0,
+        },
+        Err(_) => 0,
+    };
+
+    let attributes = metadata.file_attributes();
+
+    self.last_modified_date = Some(modified);
+    self.created_date = Some(created);
+    self.permissions = Some(metadata.permissions().readonly());
+    self.hidden = Some(attributes & 2 == 2);
+  }
 }
 
 impl File {
@@ -49,7 +82,8 @@ impl FileSystem {
   pub async fn gen_tree(location: &str, id: &str) -> Tree {
     let root = Node::new(File {
       name: location.to_string().replace("\\", "/"),
-      is_dir: true
+      is_dir: true,
+      size: 0
     });
     let mut tree = Tree::new(root, id.to_string());
     let mut children = Vec::new();
@@ -71,7 +105,8 @@ impl FileSystem {
       let is_dir = metadata.is_dir();
       child_dirs_file.push(File {
         name: entry.file_name().to_str().unwrap().to_string(),
-        is_dir: is_dir
+        is_dir: is_dir,
+        size: 0
       });
     }
 
@@ -105,7 +140,8 @@ impl FileSystem {
       } else {
         children.push(Node::new(File {
           name: file.name,
-          is_dir: false
+          is_dir: false,
+          size: 0
         }));
       }
     }
@@ -118,7 +154,7 @@ impl FileSystem {
       let child = child_thread.join().unwrap();
       match child {
         Ok(child) => {
-          children.push(child);
+          children.extend(child);
         },
         Err(_) => {
           println!("Error reading directory: {}", location);
@@ -130,15 +166,17 @@ impl FileSystem {
 
     children.sort_by(|a, b| {a.compare(&b.data)});
 
+    tree.get_root_mut().data.size = children.iter().map(|x| x.data.size).sum();
     tree.get_root_mut().add_children(children);
 
     return tree;
   }
 
-  fn traverse_files(parent: &str, name: &str) -> Node {
+  fn traverse_files(parent: &str, name: &str) -> Vec<Node> {
     let mut root = Node::new(File {
       name: name.to_string(),
-      is_dir: true
+      is_dir: true,
+      size: 0
     });
     let mut children = Vec::new();
 
@@ -147,7 +185,7 @@ impl FileSystem {
       Err(err) => {
         println!("Error: {:?}", err);
         println!("Error reading directory: {}/{}", parent, name);
-        return root;
+        return Vec::new();
       }
     };
     let mut child_dirs_file = Vec::new();
@@ -163,9 +201,18 @@ impl FileSystem {
         }
       };
       let is_dir = metadata.is_dir();
+      let mut size = metadata.len();
+      if size > 100000 {
+        size = match path.size_on_disk_fast(&metadata) {
+          Ok(size) => size,
+          Err(_) => 0,
+        };
+      }
+
       child_dirs_file.push(File {
         name: entry.file_name().to_str().unwrap().to_string(),
-        is_dir: is_dir
+        is_dir: is_dir,
+        size: size
       });
     }
 
@@ -173,17 +220,19 @@ impl FileSystem {
 
     for file in child_dirs_file {
       if file.is_dir {
-        children.push(FileSystem::traverse_files(&format!("{}/{}", parent, name), &file.name));
+        children.extend(FileSystem::traverse_files(&format!("{}/{}", parent, name), &file.name));
       } else {
         children.push(Node::new(File {
           name: file.name,
-          is_dir: false
+          is_dir: false,
+          size: file.size
         }));
       }
     }
 
+    root.data.size = children.iter().map(|x| x.data.size).sum();
     root.add_children(children);
 
-    return root;
+    return Vec::from([root]);
   }
 }
