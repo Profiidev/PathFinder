@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Svg from '$lib/components/Svg.svelte';
-	import { settings } from '$lib/stores';
+	import { settings, pathHistory } from '$lib/stores';
 	import { getTextColor } from '$lib/utils/theme';
 	import type { SvgColor } from '$lib/types';
+	import { loadFiles } from '$lib/backend/files';
 
 	let pathVisualizerVisible = true;
 	let pathInput: HTMLInputElement;
@@ -12,6 +13,9 @@
 
 	const focusLoss = (e: Event) => {
 		$settings.currentPath = $settings.currentPath.trim().replace(/\\/g, '/');
+		if ($settings.currentPath === '') $settings.currentPath = 'C:/';
+		if ($settings.currentPath[$settings.currentPath.length - 1] !== '/')
+			$settings.currentPath += '/';
 		pathVisualizerVisible = true;
 	};
 
@@ -33,11 +37,40 @@
 
 	$: pathParts = $settings.currentPath.split('/').filter((part) => part !== '');
 	$: iconColors = [{ key: '#FFFFFF', color: getTextColor($settings.appearance.theme) }];
+
+	const gotToParent = () => {
+		if (pathParts.length > 0) {
+			$settings.currentPath = $settings.currentPath.split('/').filter(p => p !== "").slice(0, -1).join('/') + '/';
+			if($settings.currentPath === '/') $settings.currentPath = 'C:/';
+		}
+	};
+
+	const goToPathPart = (index: number) => {
+		if (index < pathParts.length) {
+			$settings.currentPath = $settings.currentPath.split('/').filter(p => p !== "").slice(0, index + 1).join('/') + '/';
+		}
+	};
+
+	const goBack = () => {
+		if ($pathHistory.currentIndex > 0) {
+			$pathHistory.historyUpdated = true;
+			$pathHistory.currentIndex--;
+			$settings.currentPath = $pathHistory.paths[$pathHistory.currentIndex];
+		}
+	};
+
+	const goForward = () => {
+		if ($pathHistory.currentIndex < $pathHistory.paths.length - 1) {
+			$pathHistory.historyUpdated = true;
+			$pathHistory.currentIndex++;
+			$settings.currentPath = $pathHistory.paths[$pathHistory.currentIndex];
+		}
+	};
 </script>
 
 <div class="topbar">
 	<div class="topbar-left">
-		<div class="topbar-button">
+		<button class="topbar-button reset-button" on:click={() => goBack()}>
 			<Svg
 				svgData={{
 					data: { path: '/svgs/arrow/arrow_left.svg', colors: iconColors },
@@ -45,8 +78,8 @@
 					height: 25
 				}}
 			/>
-		</div>
-		<div class="topbar-button">
+		</button>
+		<button class="topbar-button reset-button" on:click={() => goForward()}>
 			<Svg
 				svgData={{
 					data: { path: '/svgs/arrow/arrow_right.svg', colors: iconColors },
@@ -54,8 +87,8 @@
 					height: 25
 				}}
 			/>
-		</div>
-		<div class="topbar-button">
+		</button>
+		<button class="topbar-button reset-button" on:click={() => gotToParent()}>
 			<Svg
 				svgData={{
 					data: { path: '/svgs/arrow/arrow_up.svg', colors: iconColors },
@@ -63,8 +96,8 @@
 					height: 25
 				}}
 			/>
-		</div>
-		<div class="topbar-button">
+		</button>
+		<button class="topbar-button reset-button" on:click={() => loadFiles()}>
 			<Svg
 				svgData={{
 					data: { path: '/svgs/arrow/arrow_repeat.svg', colors: iconColors },
@@ -72,7 +105,7 @@
 					height: 18.75
 				}}
 			/>
-		</div>
+		</button>
 	</div>
 	<div class="topbar-path-container" bind:clientWidth={pathWidth}>
 		<input
@@ -92,12 +125,13 @@
 	<div class="path-visualizer" style="max-width: {pathWidth}px;">
 		{#if pathParts.length > 0 && pathVisualizerVisible}
 			{#each pathParts as part, index}
-				<div
-					class="path-visualizer-part"
+				<button
+					class="path-visualizer-part reset-button"
 					style={index === 0 ? 'padding-left: .2em; margin-left: .3em;' : ''}
+					on:click={() => goToPathPart(index)}
 				>
 					<span>{part}</span>
-				</div>
+				</button>
 				{#if index !== pathParts.length - 1}
 					<div class="path-visualizer-split">
 						<Svg
@@ -146,8 +180,8 @@
 		padding: 0.5em;
 		margin: 0 0.25em;
 		border-radius: 0.25em;
-		width: 1.2em;
-		height: 1.2em;
+		width: 2.2em;
+		height: 2.2em;
 		user-select: none;
 	}
 
@@ -163,9 +197,10 @@
 		margin-left: 0.5em;
 		border-radius: 0.25em;
 		height: 2.2em;
-		width: calc(100% - 1.5em);
+		width: calc(100% - 0.5em);
 		min-width: 2.5em;
 		padding: 0 0.5em;
+		box-sizing: border-box;
 	}
 
 	.topbar-spacing {
@@ -231,7 +266,7 @@
 	}
 
 	.path-visualizer-part span {
-		font-size: 1em;
+		font-size: 0.9em;
 		width: 100%;
 		overflow: hidden;
 		text-overflow: ellipsis;

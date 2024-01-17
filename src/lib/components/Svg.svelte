@@ -20,27 +20,44 @@
 
 	let svg: string = '';
 	let overlaySvg: string = '';
+	let currentFetch = 0;
+	let currentOverlayFetch = 0;
 
-	$: {
+	$: svgData, overlayData,
+		fetchSvg();
+
+	const fetchSvg = () => {
+		currentFetch++;
+		fetchSvgHtml(currentFetch);
+
+		if (overlayData.data.path !== '') {
+			currentOverlayFetch++;
+			fetchOverlaySvgHtml(currentOverlayFetch);
+		}
+	}
+
+	const fetchSvgHtml = (fetchNumber: number) => {
 		fetch(svgData.data.path)
 			.then((res) => res.text())
 			.then((data) => {
 				svgData.data.colors?.forEach((color) => {
 					data = data.replace(new RegExp(color.key, 'g'), color.color);
 				});
-				svg = data;
+				if(fetchNumber === currentFetch)
+					svg = data;
 			});
+	}
 
-		if (overlayData.data.path !== '') {
-			fetch(overlayData.data.path)
-				.then((res) => res.text())
-				.then((data) => {
-					overlayData.data.colors.forEach((color) => {
-						data = data.replace(new RegExp(color.key, 'g'), color.color);
-					});
-					overlaySvg = data;
+	const fetchOverlaySvgHtml = (fetchNumber: number) => {
+		fetch(overlayData.data.path)
+			.then((res) => res.text())
+			.then((data) => {
+				overlayData.data.colors.forEach((color) => {
+					data = data.replace(new RegExp(color.key, 'g'), color.color);
 				});
-		}
+				if(fetchNumber === currentOverlayFetch)
+					overlaySvg = data;
+			});
 	}
 </script>
 

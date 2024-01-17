@@ -1,7 +1,33 @@
 use uuid::Uuid;
+use std::path::Path;
+use notify::{RecursiveMode, Watcher};
 use crate::tree::{TreeSearchType, Tree};
-use crate::file::{File, FileSystem};
+use crate::file::{File, FileSystem, FileData};
 use crate::StateData;
+
+#[tauri::command]
+pub fn save_settings(settings: String, state: tauri::State<StateData>) -> bool {
+  let mut config = match state.2.lock() {
+    Ok(config) => config,
+    Err(_) => return false,
+  };
+
+  config.settings.settings = settings;
+  
+  let config_path = config.path.clone() + "/settings.json";
+  config.settings.save(&(config_path));
+  true
+}
+
+#[tauri::command]
+pub fn get_settings(state: tauri::State<StateData>) -> String {
+  let config = match state.2.lock() {
+    Ok(config) => config,
+    Err(_) => return String::new(),
+  };
+
+  config.settings.settings.clone()
+}
 
 #[tauri::command]
 pub fn search_partial(name: String, path: String, search_type: String, is_dir: bool, state: tauri::State<StateData>) -> Vec<File> {
@@ -66,6 +92,11 @@ pub async fn add_location(location: String, state: tauri::State<'_,StateData>) -
     Err(_) => return Ok(false),
   };
 
+  let mut watcher = match state.1.lock() {
+    Ok(watcher) => watcher,
+    Err(_) => return Ok(false),
+  };
+
   let mut config = match state.2.lock() {
     Ok(config) => config,
     Err(_) => return Ok(false),
@@ -73,6 +104,17 @@ pub async fn add_location(location: String, state: tauri::State<'_,StateData>) -
 
   config.create_tree(&tree);
   trees.push(tree);
+
+  match watcher.watcher {
+    Some(ref mut watcher_ref) => {
+      match watcher_ref.watch(Path::new(&(location.replace("\\", "/").to_string() + "/")), RecursiveMode::Recursive) {
+        Ok(_) => (),
+        Err(_) => return Ok(false),
+      };
+    },
+    None => return Ok(false),
+  }
+
   Ok(true)
 }
 
@@ -166,4 +208,15 @@ pub fn get_tree(location: String, state: tauri::State<StateData>) -> Option<Tree
     }
   }
   None
+}
+
+#[tauri::command]
+pub fn get_files(location: String, state: tauri::State<StateData>) -> Vec<FileData> {
+  let trees = state.0.lock().unwrap();
+  for tree in trees.iter() {
+    if tree.is_in_tree(&location) {
+      return tree.get_files(&location);
+    }
+  }
+  Vec::new()
 }

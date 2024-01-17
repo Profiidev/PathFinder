@@ -12,6 +12,11 @@ pub struct File {
 pub struct FileData {
   pub file: File,
   pub path: String,
+	pub size: Option<u64>,
+	pub last_modified_date: Option<u64>,
+	pub created_date: Option<u64>,
+	pub permissions: Option<bool>,
+  pub hidden: Option<bool>,
 }
 
 impl File {

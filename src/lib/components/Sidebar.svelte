@@ -34,6 +34,10 @@
 		}
 		$settings.sidebar.width += toAdd;
 	};
+
+	const locationClick = (path: string) => {
+		$settings.currentPath = path;
+	}
 </script>
 
 <svelte:window on:mouseup={mouseUpHandler} on:mousemove={mouseMoveHandler} />
@@ -76,6 +80,7 @@
 				<SidebarEntry
 					svgData={getIconData(location.type, $settings.appearance.iconTheme)}
 					text={location.name}
+					onClick={() => locationClick(location.path)}
 				/>
 			{/each}
 		</SidebarSection>

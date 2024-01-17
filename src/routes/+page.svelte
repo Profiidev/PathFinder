@@ -33,78 +33,6 @@
 		count = testList.length;
 		console.log(testList);
 	};
-
-	const addLocation = async () => {
-		const res = await invoke('add_location', { location: input }).catch((err) => {
-			console.log(err);
-		});
-		console.log(res);
-		path = input;
-	};
-
-	const removeLocation = async () => {
-		const res = await invoke('remove_location', { location: input }).catch((err) => {
-			console.log(err);
-		});
-		console.log(res);
-	};
-
-	const reindexLocation = async () => {
-		const res = await invoke('reindex_location', { location: input }).catch((err) => {
-			console.log(err);
-		});
-		console.log(res);
-	};
-
-	const getTree = async () => {
-		const res = await invoke('get_tree', { location: input }).catch((err) => {
-			console.log(err);
-		});
-		let data = res as {
-			root: { children: {}[]; data: { name: string; path: string; is_dir: boolean } };
-		};
-		testList = [];
-		count = 0;
-		if (data == null) {
-			return;
-		}
-		testList.push(data.root.data.name);
-		data.root.children.forEach((child) => {
-			traverse(
-				child as { children: {}[]; data: { name: string; path: string; is_dir: boolean } },
-				1
-			);
-		});
-		count++;
-	};
-
-	const traverse = (
-		node: { children: {}[]; data: { name: string; path: string; is_dir: boolean } },
-		i: number
-	) => {
-		testList.push('|--'.repeat(i) + node.data.name);
-		node.children.forEach((child) => {
-			traverse(
-				child as { children: {}[]; data: { name: string; path: string; is_dir: boolean } },
-				i + 1
-			);
-		});
-		count++;
-	};
-
-	let testData: FileData[] = [];
-	for (let i = 0; i < 10; i++) {
-		testData.push({
-			name: `test${i}`,
-			type: FileType.DIRECTORY,
-			size: i * i * 1000,
-			lastModifiedDate: Date.now() + i * 1000,
-			createdDate: Date.now() + i * 1000,
-			owner: 'owner',
-			permissions: 'read'
-		} as FileData);
-	}
-	$loadedFiles = testData;
 </script>
 
 <div class="container">
@@ -127,6 +55,7 @@
 		<Settings />
 	{/if}
 </div>
+
 <style>
 	.container {
 		display: flex;
@@ -142,6 +71,7 @@
 
 	.topbar-container {
 		height: 3.5em;
+		min-height: 3.5em;
 		width: 100%;
 	}
 
@@ -156,6 +86,7 @@
 	.sidebar-container {
 		height: 100%;
 		width: 10em;
+		min-width: 10em;
 		border-right: 1px solid var(--color-secondary-dark);
 	}
 
@@ -165,6 +96,7 @@
 
 	.bottombar-container {
 		height: 2em;
+		min-height: 2em;
 		width: 100%;
 		border-top: 1px solid var(--color-secondary-dark);
 	}

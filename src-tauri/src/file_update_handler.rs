@@ -3,7 +3,6 @@ use std::path::{PathBuf, Path};
 use notify::{Event, EventKind, RecursiveMode, Watcher};
 use notify::event::{ModifyKind, RenameMode, CreateKind};
 use tauri::Manager;
-use std::sync::Arc;
 use crate::file::{File, FileData};
 use crate::tree::Tree;
 use crate::StateData;
@@ -11,7 +10,7 @@ use crate::APP;
 
 pub struct FileUpdateHandler {
   pub paths: Vec<PathBuf>,
-  pub watcher: Option<Arc<notify::RecommendedWatcher>>,
+  pub watcher: Option<notify::RecommendedWatcher>,
 }
 
 impl FileUpdateHandler {
@@ -58,7 +57,7 @@ impl FileUpdateHandler {
 
       FileUpdateHandler {
         paths: Vec::new(),
-        watcher: Some(Arc::new(watcher)),
+        watcher: Some(watcher),
       }
     }
 
@@ -161,6 +160,11 @@ fn get_file(path: PathBuf) -> FileData {
             return FileData {
                 file,
                 path,
+                size: None,
+                last_modified_date: None,
+                created_date: None,
+                permissions: None,
+                hidden: None,
             };
         }
     };
@@ -170,5 +174,10 @@ fn get_file(path: PathBuf) -> FileData {
     FileData {
         file,
         path,
+        size: None,
+        last_modified_date: None,
+        created_date: None,
+        permissions: None,
+        hidden: None,
     }
 }

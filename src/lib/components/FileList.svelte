@@ -9,11 +9,21 @@
 	let files: FileData[] = [];
 	$: files = $loadedFiles;
 
+	$: {
+		if(!$settings.fileList.showHiddenFiles) {
+			files = files.filter((file) => !file.hidden);
+		}
+	}
+
 	$: files = files.sort((a, b) => {
 		let result = $settings.fileList.sortAscending ? 1 : -1;
 		switch ($settings.fileList.sortType) {
 			case SortType.NAME:
-				result *= a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+				if(a.type === b.type) {
+					result *= a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+				} else {
+					result = a.type === FileType.DIRECTORY ? -1 : 1;
+				}
 				break;
 			case SortType.SIZE:
 				result *= a.size - b.size;
@@ -24,14 +34,11 @@
 			case SortType.CREATED_DATE:
 				result *= a.createdDate - b.createdDate;
 				break;
-			case SortType.OWNER:
-				result *= a.owner.localeCompare(b.owner, undefined, { numeric: true, sensitivity: 'base' });
-				break;
 			case SortType.PERMISSIONS:
-				result *= a.permissions.localeCompare(b.permissions, undefined, {
-					numeric: true,
-					sensitivity: 'base'
-				});
+				result *= a.permissions === b.permissions ? 0 : a.permissions ? 1 : -1;
+				break;
+			case SortType.TYPE:
+				result *= a.type.localeCompare(b.type, undefined, { numeric: true, sensitivity: 'base' });
 				break;
 			default:
 				result *= 0;
@@ -92,6 +99,8 @@
     $settings.fileList.fileListHeaders = headers;
 	};
 
+	let lastSingleClick = 0;
+
 	const onSelected = (e: Event, file: FileData, selected: boolean) => {
 		selectedFiles.update((data) => {
 			if ($pressedKeys.includes('control') && $pressedKeys.includes('shift')) {
@@ -124,7 +133,11 @@
 			} else {
 				if (selected) {
 					if (data.files.length === 1) {
-						//TODO change name
+						if(Date.now() - lastSingleClick < 500) {
+							$settings.currentPath += file.name + '/';
+						} else {
+							//TODO change name
+						}
 					} else {
 						data.files = [file.name];
 					}
@@ -132,6 +145,7 @@
 					data.files = [file.name];
 				}
 				data.lastSelectedIndex = files.indexOf(file);
+				lastSingleClick = Date.now();
 			}
 			return data;
 		});
@@ -149,6 +163,21 @@
 
 	$: {
 		totalWidth = headerWidths.reduce((a, b) => a + b, 0);
+	}
+
+	const clickHandler = () => {
+		$selectedFiles.files = [];
+	}
+
+	let items: HTMLButtonElement;
+
+	$: $settings.currentPath,
+		resetScroll();
+
+	const resetScroll = () => {
+		if(items) {
+			items.scrollTop = 0;
+		}
 	}
 </script>
 
@@ -170,11 +199,11 @@
 			{/if}
 		{/each}
 	</div>
-	<div class="file-list-items scrollbar">
+	<button class="file-list-items scrollbar reset-button" on:click={clickHandler} bind:this={items}>
 		{#each files as file}
 			<FileListEntry {file} {onSelected} width={totalWidth} />
 		{/each}
-	</div>
+	</button>
 </div>
 
 <style>
@@ -201,6 +230,7 @@
 	.file-list-items {
 		display: flex;
 		flex-direction: column;
+		align-items: flex-start;
 		overflow-y: auto;
 		overflow-x: hidden;
 	}

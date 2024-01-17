@@ -11,8 +11,8 @@
 		size: 0,
 		lastModifiedDate: Date.now(),
 		createdDate: Date.now(),
-		owner: 'undefined',
-		permissions: 'undefined'
+		permissions: 'undefined',
+		hidden: false
 	};
 	export let width = 100;
 
@@ -21,23 +21,31 @@
 	let svgData = getIconData(file.type, $settings.appearance.iconTheme);
 	let selected = false;
 	let fileDataString: string[] = [];
-	let svgInfo: SvgInfo = {
-		data: svgData,
-		width: 20,
-		height: 20
-	};
 
 	$: selected = $selectedFiles.files.includes(file.name);
 	$: {
 		fileDataString = [];
-		fileDataString.push(file.name);
+		fileDataString.push(parseFileName(file.name));
 		fileDataString.push(parseDate(file.lastModifiedDate));
 		fileDataString.push(parseDate(file.createdDate));
-		fileDataString.push(file.owner);
-		fileDataString.push(file.permissions);
+		fileDataString.push(file.permissions ? 'read' : 'write');
 		fileDataString.push(file.type);
 		fileDataString.push(parseSize(file.size));
 	}
+	$: file.type,
+		svgData = getIconData(file.type, $settings.appearance.iconTheme)
+
+	const parseFileName = (name: string) => {
+		let dotCount = name.split('.').length - 1;
+		if (
+			((name.charAt(0) === '.' && dotCount >= 2) || (name.charAt(0) !== '.' && dotCount >= 1)) &&
+			file.type === FileType.FILE
+		) {
+			return name.substring(0, name.lastIndexOf('.'));
+		} else {
+			return name;
+		}
+	};
 
 	const parseSize = (size: number) => {
 		if (size < 1024) {
@@ -52,11 +60,12 @@
 	};
 
 	const parseDate = (timestamp: number) => {
-		const date = new Date(timestamp);
+		const date = new Date(timestamp * 1000);
 		return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
 	};
 
 	const clickHandler = (e: Event) => {
+		e.stopPropagation();
 		onSelected(e, file, selected);
 	};
 </script>
@@ -66,12 +75,14 @@
 	style="font-size: {18 * $settings.appearance.zoom}px; width: {width}px;"
 	on:click={clickHandler}
 >
-	<div class="file-list-entry-icon">
-		<Svg svgData={{
-			data: svgData,
-			width: 40 * $settings.appearance.zoom,
-			height: 40 * $settings.appearance.zoom
-		}} />
+	<div class="file-list-entry-icon" style={file.hidden ? 'opacity: 0.3;' : ''}>
+		<Svg
+			svgData={{
+				data: svgData,
+				width: 40 * $settings.appearance.zoom,
+				height: 40 * $settings.appearance.zoom
+			}}
+		/>
 	</div>
 	<div class="file-list-entry-data">
 		{#each $settings.fileList.fileListHeaders as header, i}

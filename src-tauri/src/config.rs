@@ -46,23 +46,25 @@ impl Config {
   pub fn create_tree(&mut self, tree: &Tree) {
     self.tree_data.saved_tree_ids.push(tree.id.to_string());
     self.save_tree(&tree);
+    self.tree_data.save(&(self.path.to_string() + "/tree_data.json"));
   }
 
   pub fn remove_tree(&mut self, id: String) {
     self.tree_data.saved_tree_ids.retain(|x| x != &id);
     let path = self.path.to_string() + "/trees/" + &id + ".json";
     std::fs::remove_file(path).unwrap();
+    self.tree_data.save(&(self.path.to_string() + "/tree_data.json"));
   }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Settings {
-
+  pub settings: String
 }
 
 impl Settings {
   pub fn new() -> Settings {
-    Settings {}
+    Settings {settings: "".to_string()}
   }
 
   pub fn load(file: &str) -> Settings {

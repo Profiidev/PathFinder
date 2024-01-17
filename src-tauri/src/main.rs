@@ -27,7 +27,17 @@ fn main() {
   
   tauri::Builder::default()
     .manage(StateData(Mutex::new(trees), Mutex::new(event_handler), Mutex::new(config)))
-    .invoke_handler(tauri::generate_handler![commands::search_partial, commands::add_location, commands::remove_location, commands::reindex_location, commands::get_tree, commands::get_locations])
+    .invoke_handler(tauri::generate_handler![
+      commands::search_partial, 
+      commands::add_location, 
+      commands::remove_location, 
+      commands::reindex_location, 
+      commands::get_tree, 
+      commands::get_locations, 
+      commands::get_settings, 
+      commands::save_settings,
+      commands::get_files,
+    ])
     .setup(|app| {
       let handle = app.handle();
       APP.handle.lock().unwrap().replace(handle);

@@ -4,8 +4,8 @@ export type FileData = {
 	size: number;
 	lastModifiedDate: number;
 	createdDate: number;
-	owner: string;
 	permissions: string;
+	hidden: boolean;
 };
 
 export enum FileType {
@@ -32,6 +32,7 @@ export type Settings = {
 	appearance: AppearanceSettings;
 	sidebar: SidebarSettings;
 	currentPath: string;
+	loaded: boolean;
 };
 
 export type AppearanceSettings = {
@@ -62,9 +63,8 @@ export enum SortType {
 	SIZE = 'size',
 	CREATED_DATE = 'created_date',
 	MODIFIED_DATE = 'modified_date',
-	OWNER = 'owner',
 	PERMISSIONS = 'permissions',
-	TYPE = 'type',
+	TYPE = 'type'
 }
 
 export type FileSelectionData = {
@@ -74,7 +74,7 @@ export type FileSelectionData = {
 
 export type SidebarSettings = {
 	pinnedPaths: Pinned[];
-	devices: Device[]
+	devices: Device[];
 	tags: Tag[];
 	width: number;
 	expanded: boolean[];
@@ -115,16 +115,22 @@ export type SvgColor = {
 export type SvgData = {
 	path: string;
 	colors: SvgColor[];
-}
+};
 
 export type SvgInfo = {
 	data: SvgData;
 	width: number;
 	height: number;
-}
+};
 
 export type LocationData = {
 	name: string;
 	path: string;
 	type: FileType;
-}
+};
+
+export type PathHistory = {
+	paths: string[];
+	currentIndex: number;
+	historyUpdated: boolean;
+};

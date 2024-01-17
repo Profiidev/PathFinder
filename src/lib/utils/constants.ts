@@ -5,17 +5,15 @@ import type {
 	FileListSettings,
 	Settings,
 	SidebarSettings,
-	Tag, 
+	Tag,
 	Pinned,
-	IndexLocation,
-	Device
+	IndexLocation
 } from '$lib/types';
 
 export const fileListHeaders = [
 	{ name: 'Name', sortType: SortType.NAME, width: 12.6, active: true } as FileListHeader,
 	{ name: 'Created', sortType: SortType.CREATED_DATE, width: 12, active: true } as FileListHeader,
 	{ name: 'Modified', sortType: SortType.MODIFIED_DATE, width: 12, active: true } as FileListHeader,
-	{ name: 'Owner', sortType: SortType.OWNER, width: 6.3, active: true } as FileListHeader,
 	{
 		name: 'Permissions',
 		sortType: SortType.PERMISSIONS,
@@ -84,7 +82,8 @@ export const defaultSettings = {
 		width: 10,
 		expanded: [true, true, true, true]
 	} as SidebarSettings,
-	currentPath: 'C:/'
+	currentPath: 'C:/',
+	loaded: false
 } as Settings;
 
 export const minZoom = 0.1;

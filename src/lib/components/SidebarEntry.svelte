@@ -8,9 +8,14 @@
 		colors: []
 	};
 	export let text: string;
+	export let onClick: () => void = () => {};
 </script>
 
-<div class="sidebar-entry" style="width: calc({$settings.sidebar.width}em - 1.5em);">
+<button
+	class="sidebar-entry reset-button"
+	style="width: calc({$settings.sidebar.width}em - 1.5em);"
+	on:click={onClick}
+>
 	<div class="sidebar-entry-icon">
 		{#if svgData.path !== ''}
 			<Svg svgData={{ data: svgData, width: 20, height: 20 }} />
@@ -19,7 +24,7 @@
 		{/if}
 	</div>
 	<span>{text}</span>
-</div>
+</button>
 
 <style>
 	.sidebar-entry {

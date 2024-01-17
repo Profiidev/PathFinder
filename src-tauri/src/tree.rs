@@ -1,7 +1,6 @@
-use std::cmp::Ordering;
-
+use std::{cmp::Ordering, fs, time::UNIX_EPOCH, os::windows::prelude::*};
 use serde::{Serialize, Deserialize};
-use crate::file::File;
+use crate::file::{File, FileData};
 
 #[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct Tree {
@@ -75,6 +74,11 @@ impl Tree {
         let path = parse_path(path, &self.root.data.name);
         self.root.edit_node(path, file);
     }
+
+    pub fn get_files(&self, path: &str) -> Vec<FileData> {
+        let path_vec = parse_path(path, &self.root.data.name);
+        self.root.get_files(path_vec, path)
+    }
 }
 
 fn parse_path(path: &str, root_name: &str) -> Vec<String> {
@@ -82,8 +86,8 @@ fn parse_path(path: &str, root_name: &str) -> Vec<String> {
         return Vec::new();
     }
     let mut path = path.to_string();
-    path.replace_range(0..root_name.len() + 1, "");
-    path.split("/").map(|s| s.to_string()).collect::<Vec<String>>()
+    path.replace_range(0..root_name.len(), "");
+    path.split("/").map(|s| s.to_string()).filter(|s| s != "").collect::<Vec<String>>()
 }
 
 #[derive(Debug, Serialize, Clone, Deserialize)]
@@ -180,5 +184,62 @@ impl Node {
                 return;
             }
         }
+    }
+
+    pub fn get_files(&self, mut path: Vec<String>, absolute_path: &str) -> Vec<FileData> {
+        if path.len() == 0 {
+            return self.children.iter().map(|x| x.get_file_data(absolute_path)).filter(|x| x.is_some()).map(|x| x.unwrap()).collect::<Vec<FileData>>();
+        }
+        let next = path.remove(0);
+        for child in &self.children {
+            if child.data.name == next {
+                return child.get_files(path, absolute_path);
+            }
+        }
+        Vec::new()
+    }
+
+    fn get_file_data(&self, absolute_path: &str) -> Option<FileData> {
+        let metadata = match fs::metadata(format!("{}/{}", absolute_path, self.data.name)) {
+            Ok(metadata) => metadata,
+            Err(_) => {
+                println!("Error reading metadata for: {}/{}", absolute_path, self.data.name);
+                return None;
+            }
+        };
+
+        let modified = match metadata.modified() {
+            Ok(modified) => match modified.duration_since(UNIX_EPOCH) {
+                Ok(duration) => duration.as_secs(),
+                Err(_) => 0,
+            },
+            Err(_) => 0,
+        };
+
+        let created = match metadata.created() {
+            Ok(created) => match created.duration_since(UNIX_EPOCH) {
+                Ok(duration) => duration.as_secs(),
+                Err(_) => 0,
+            },
+            Err(_) => 0,
+        };
+
+        let attributes = metadata.file_attributes();
+        if attributes & 4 == 4 {
+            return None;
+        }
+        
+        Some(FileData {
+            file: File {
+                name: self.data.name.clone(),
+                is_dir: self.data.is_dir,
+            },
+            path: absolute_path.to_string().clone(),
+            size: Some(metadata.len()),
+            last_modified_date: Some(modified),
+            created_date: Some(created),
+            permissions: Some(metadata.permissions().readonly()),
+            hidden: Some(attributes & 2 == 2),
+        })
     }
 }

@@ -1,9 +1,11 @@
 <script lang="ts">
-	import { pressedKeys, settings } from '$lib/stores';
+	import { pathHistory, pressedKeys, settings } from '$lib/stores';
 	import { getPrimaryColor as getAccentColor, getSecondaryColor as getAccentColorDark } from '$lib/utils/icon_resolver';
 	import { getPrimaryColor, getPrimaryDarkColor, getSecondaryColor, getSecondaryLightColor, getSecondaryDarkColor, getTextColor } from '$lib/utils/theme';
 	import { load } from '$lib/start';
 	import { onMount } from 'svelte';
+	import { saveSettings } from '$lib/backend/settings';
+	import { loadFiles } from '$lib/backend/files';
 
 	const keyDownHandler = (e: KeyboardEvent) => {
 		pressedKeys.update((keys) => {
@@ -33,7 +35,26 @@
 		document.body.style.setProperty('--color-secondary-light', getSecondaryLightColor($settings.appearance.theme)),
 		document.body.style.setProperty('--color-text', getTextColor($settings.appearance.theme))
 
+	$: $settings,
+		saveSettings()
+
+	$: $settings.currentPath,
+		reloadFiles()
+		
 	
+	const reloadFiles = () => {
+		if($settings.currentPath[$settings.currentPath.length - 1] === '/') {
+			loadFiles();
+			if($pathHistory.historyUpdated || $settings.loaded || $settings.currentPath === $pathHistory.paths[$pathHistory.currentIndex]) {
+				$pathHistory.historyUpdated = false;
+				return;
+			}
+			$pathHistory.currentIndex++;
+			$pathHistory.paths = $pathHistory.paths.slice(0, $pathHistory.currentIndex);
+			$pathHistory.paths.push($settings.currentPath);
+		}
+	}
+
 	onMount(() => {
 		load();
 	});
