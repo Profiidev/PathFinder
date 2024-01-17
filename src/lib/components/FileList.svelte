@@ -134,7 +134,11 @@
 				if (selected) {
 					if (data.files.length === 1) {
 						if(Date.now() - lastSingleClick < 500) {
-							$settings.currentPath += file.name + '/';
+							if(file.type === FileType.DIRECTORY) {
+								$settings.currentPath += file.name + '/';
+							} else {
+								//TODO open file
+							}
 						} else {
 							//TODO change name
 						}

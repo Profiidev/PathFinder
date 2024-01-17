@@ -57,7 +57,7 @@ impl FileSystem {
     let child_dirs = match fs::read_dir(location.to_string() + "/") {
       Ok(child_dirs) => child_dirs,
       Err(_) => {
-        print!("Error reading directory: {}", location);
+        println!("Error reading directory: {}", location);
         tree.id = "error".to_string();
         return tree;
       }
@@ -121,7 +121,7 @@ impl FileSystem {
           children.push(child);
         },
         Err(_) => {
-          print!("Error reading directory: {}", location);
+          println!("Error reading directory: {}", location);
           tree.id = "error".to_string();
           return tree;
         }
@@ -144,8 +144,9 @@ impl FileSystem {
 
     let child_dirs = match fs::read_dir(format!("{}/{}", parent, name)) {
       Ok(child_dirs) => child_dirs,
-      Err(_) => {
-        print!("Error reading directory: {}/{}", parent, name);
+      Err(err) => {
+        println!("Error: {:?}", err);
+        println!("Error reading directory: {}/{}", parent, name);
         return root;
       }
     };
@@ -157,7 +158,7 @@ impl FileSystem {
       let metadata = match fs::metadata(&path) {
         Ok(metadata) => metadata,
         Err(_) => {
-          print!("Error reading metadata for: {}/{}", parent, name);
+          println!("Error reading metadata for: {}/{}", parent, name);
           continue;
         }
       };

@@ -1,9 +1,8 @@
 use uuid::Uuid;
-use std::path::Path;
-use notify::{RecursiveMode, Watcher};
 use crate::tree::{TreeSearchType, Tree};
 use crate::file::{File, FileSystem, FileData};
 use crate::StateData;
+use crate::FileUpdateHandler;
 
 #[tauri::command]
 pub fn save_settings(settings: String, state: tauri::State<StateData>) -> bool {
@@ -44,7 +43,10 @@ pub fn search_partial(name: String, path: String, search_type: String, is_dir: b
     _ => return found,
   };
 
-  let trees = state.0.lock().unwrap();
+  let trees = match state.0.lock() {
+    Ok(trees) => trees,
+    Err(_) => return found,
+  };
   for tree in trees.iter() {
     if !tree.is_in_tree(&path) {
       continue;
@@ -105,15 +107,7 @@ pub async fn add_location(location: String, state: tauri::State<'_,StateData>) -
   config.create_tree(&tree);
   trees.push(tree);
 
-  match watcher.watcher {
-    Some(ref mut watcher_ref) => {
-      match watcher_ref.watch(Path::new(&(location.replace("\\", "/").to_string() + "/")), RecursiveMode::Recursive) {
-        Ok(_) => (),
-        Err(_) => return Ok(false),
-      };
-    },
-    None => return Ok(false),
-  }
+  watcher.watcher = FileUpdateHandler::add_location(&trees.iter().map(|tree| tree.get_root_location()).collect::<Vec<String>>());
 
   Ok(true)
 }
@@ -191,7 +185,10 @@ pub async fn reindex_location(location: String, state: tauri::State<'_,StateData
 
 #[tauri::command]
 pub fn get_locations(state: tauri::State<StateData>) -> Vec<String> {
-  let trees = state.0.lock().unwrap();
+  let trees = match state.0.lock() {
+    Ok(trees) => trees,
+    Err(_) => return Vec::new(),
+  };
   let mut locations = Vec::new();
   for tree in trees.iter() {
     locations.push(tree.get_root().data.name.clone());
@@ -201,7 +198,10 @@ pub fn get_locations(state: tauri::State<StateData>) -> Vec<String> {
 
 #[tauri::command]
 pub fn get_tree(location: String, state: tauri::State<StateData>) -> Option<Tree> {
-  let trees = state.0.lock().unwrap();
+  let trees = match state.0.lock() {
+    Ok(trees) => trees,
+    Err(_) => return None,
+  };
   for tree in trees.iter() {
     if tree.get_root().data.name == location.replace("\\", "/") {
       return Some(tree.clone());
@@ -212,7 +212,10 @@ pub fn get_tree(location: String, state: tauri::State<StateData>) -> Option<Tree
 
 #[tauri::command]
 pub fn get_files(location: String, state: tauri::State<StateData>) -> Vec<FileData> {
-  let trees = state.0.lock().unwrap();
+  let trees = match state.0.lock() {
+    Ok(trees) => trees,
+    Err(_) => return Vec::new(),
+  };
   for tree in trees.iter() {
     if tree.is_in_tree(&location) {
       return tree.get_files(&location);

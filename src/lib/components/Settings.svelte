@@ -12,6 +12,7 @@
 	import Modal from './Modal.svelte';
 	import { IconTheme, Theme } from '$lib/types';
 	import { maxZoom, minZoom, zoomStep } from '$lib/utils/constants';
+	import { loadFiles } from '$lib/backend/files';
 
 	let tab = 0;
 	let tabs = ['General', 'Locations', 'Appearance', 'Tags', 'About'];
@@ -53,6 +54,7 @@
 					});
 
 					addLocation(result).then((res) => {
+						console.log(res);
 						finishLocationUpdate(res, 'Added');
 					});
 				} else {
@@ -74,6 +76,11 @@
 		locationModalText = text + ' Location successfully';
 		locationModalOpen = true;
 	};
+
+	const closeSettings = () => {
+		$settingsEnabled = false;
+		loadFiles();
+	}
 </script>
 
 <div class="settings">
@@ -94,7 +101,7 @@
 			{/each}
 		</div>
 		<div class="tabs-bottom">
-			<button class="close-button reset-button" on:click={() => $settingsEnabled = false}>
+			<button class="close-button reset-button" on:click={() => closeSettings}>
 				<Svg
 					svgData={{
 						data: {

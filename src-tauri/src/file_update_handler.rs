@@ -1,6 +1,6 @@
 use std::fs;
 use std::path::{PathBuf, Path};
-use notify::{Event, EventKind, RecursiveMode, Watcher};
+use notify::{Event, EventKind, RecursiveMode, Watcher, ReadDirectoryChangesWatcher};
 use notify::event::{ModifyKind, RenameMode, CreateKind};
 use tauri::Manager;
 use crate::file::{File, FileData};
@@ -15,31 +15,12 @@ pub struct FileUpdateHandler {
 
 impl FileUpdateHandler {
     pub fn inti_locations(locations: &Vec<String>) -> Self {
-      let mut watcher = match notify::recommended_watcher(|res| {
-        let handle = APP.handle.lock().unwrap();
-        let state = match handle.as_ref() {
-          Some(handle) => {
-            handle.state::<StateData>()
-          },
-          None => return,
-        };
-        match res {
-            Ok(event) => {
-              let mut event_handler = state.1.lock().unwrap();
-              let mut trees = state.0.lock().unwrap();
-              event_handler.handle_file_updates(&event, &mut *trees);
-            },
-            Err(e) => println!("watch error: {:?}", e),
-        }
-      }) {
-        Ok(watcher) => watcher,
-        Err(_) => {
-          println!("Error creating watcher");
-          return FileUpdateHandler {
-            paths: Vec::new(),
-            watcher: None,
-          };
-        }
+      let mut watcher = match get_watcher() {
+        Some(watcher) => watcher,
+        None => return FileUpdateHandler {
+          paths: Vec::new(),
+          watcher: None,
+        },
       };
 
       for location in locations {
@@ -59,6 +40,25 @@ impl FileUpdateHandler {
         paths: Vec::new(),
         watcher: Some(watcher),
       }
+    }
+
+    pub fn add_location(locations: &Vec<String>) -> Option<ReadDirectoryChangesWatcher> {
+        let mut watcher = match get_watcher() {
+            Some(watcher) => watcher,
+            None => return None,
+        };
+
+        for location in locations {
+            match watcher.watch(Path::new(&(location.replace("\\", "/").to_string() + "/")), RecursiveMode::Recursive) {
+            Ok(_) => (),
+            Err(_) => {
+                println!("Error watching directory");
+                return None;
+            }
+            };
+        }
+
+        Some(watcher)
     }
 
     pub fn handle_file_updates(&mut self, event: &Event, trees: &mut Vec<Tree>) {
@@ -97,6 +97,32 @@ impl FileUpdateHandler {
                 }
             },
             _ => (),
+        }
+    }
+}
+
+fn get_watcher() -> Option<ReadDirectoryChangesWatcher> {
+    match notify::recommended_watcher(|res| {
+        let handle = APP.handle.lock().unwrap();
+        let state = match handle.as_ref() {
+        Some(handle) => {
+            handle.state::<StateData>()
+        },
+        None => return,
+        };
+        match res {
+            Ok(event) => {
+            let mut event_handler = state.1.lock().unwrap();
+            let mut trees = state.0.lock().unwrap();
+            event_handler.handle_file_updates(&event, &mut *trees);
+            },
+            Err(e) => println!("watch error: {:?}", e),
+        }
+    }) {
+        Ok(watcher) => Some(watcher),
+        Err(_) => {
+            println!("Error creating watcher");
+            return None;
         }
     }
 }
