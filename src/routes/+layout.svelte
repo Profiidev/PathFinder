@@ -1,7 +1,17 @@
 <script lang="ts">
 	import { pathHistory, pressedKeys, settings } from '$lib/stores';
-	import { getPrimaryColor as getAccentColor, getSecondaryColor as getAccentColorDark } from '$lib/utils/icon_resolver';
-	import { getPrimaryColor, getPrimaryDarkColor, getSecondaryColor, getSecondaryLightColor, getSecondaryDarkColor, getTextColor } from '$lib/utils/theme';
+	import {
+		getPrimaryColor as getAccentColor,
+		getSecondaryColor as getAccentColorDark
+	} from '$lib/utils/icon_resolver';
+	import {
+		getPrimaryColor,
+		getPrimaryDarkColor,
+		getSecondaryColor,
+		getSecondaryLightColor,
+		getSecondaryDarkColor,
+		getTextColor
+	} from '$lib/utils/theme';
 	import { load } from '$lib/start';
 	import { onMount } from 'svelte';
 	import { saveSettings } from '$lib/backend/settings';
@@ -23,29 +33,49 @@
 		});
 	};
 
-	$: $settings.appearance.iconTheme, 
-		document.body.style.setProperty('--color-accent', "#" + getAccentColor($settings.appearance.iconTheme)),
-		document.body.style.setProperty('--color-accent-dark', "#" + getAccentColorDark($settings.appearance.iconTheme))
+	$: $settings.appearance.iconTheme,
+		document.body.style.setProperty(
+			'--color-accent',
+			'#' + getAccentColor($settings.appearance.iconTheme)
+		),
+		document.body.style.setProperty(
+			'--color-accent-dark',
+			'#' + getAccentColorDark($settings.appearance.iconTheme)
+		);
 
-	$: $settings.appearance.theme, 
+	$: $settings.appearance.theme,
 		document.body.style.setProperty('--color-primary', getPrimaryColor($settings.appearance.theme)),
-		document.body.style.setProperty('--color-primary-dark', getPrimaryDarkColor($settings.appearance.theme)),
-		document.body.style.setProperty('--color-secondary', getSecondaryColor($settings.appearance.theme)),
-		document.body.style.setProperty('--color-secondary-dark', getSecondaryDarkColor($settings.appearance.theme)),
-		document.body.style.setProperty('--color-secondary-light', getSecondaryLightColor($settings.appearance.theme)),
-		document.body.style.setProperty('--color-text', getTextColor($settings.appearance.theme))
+		document.body.style.setProperty(
+			'--color-primary-dark',
+			getPrimaryDarkColor($settings.appearance.theme)
+		),
+		document.body.style.setProperty(
+			'--color-secondary',
+			getSecondaryColor($settings.appearance.theme)
+		),
+		document.body.style.setProperty(
+			'--color-secondary-dark',
+			getSecondaryDarkColor($settings.appearance.theme)
+		),
+		document.body.style.setProperty(
+			'--color-secondary-light',
+			getSecondaryLightColor($settings.appearance.theme)
+		),
+		document.body.style.setProperty('--color-text', getTextColor($settings.appearance.theme));
 
-	$: $settings,
-		saveSettings()
+	$: $settings, saveSettings();
 
-	$: $settings.currentPath,
-		reloadFiles()
-		
-	
+	$: $settings.currentPath, reloadFiles();
+
 	const reloadFiles = () => {
-		if($settings.currentPath[$settings.currentPath.length - 1] === '/') {
+		if ($settings.currentPath[$settings.currentPath.length - 1] === '/') {
 			loadFiles();
-			if($pathHistory.historyUpdated || $settings.loaded || $settings.currentPath === $pathHistory.paths[$pathHistory.currentIndex]) {
+			if (
+				$pathHistory.historyUpdated ||
+				!$settings.loaded ||
+				($pathHistory.currentIndex !== -1 &&
+					$settings.currentPath === $pathHistory.paths[$pathHistory.currentIndex])
+			) {
 				$pathHistory.historyUpdated = false;
 				return;
 			}
@@ -53,7 +83,7 @@
 			$pathHistory.paths = $pathHistory.paths.slice(0, $pathHistory.currentIndex);
 			$pathHistory.paths.push($settings.currentPath);
 		}
-	}
+	};
 
 	onMount(() => {
 		load();
