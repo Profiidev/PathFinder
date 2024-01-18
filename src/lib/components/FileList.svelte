@@ -5,6 +5,7 @@
 	import FileListHeaderEntry from './FileListHeaderEntry.svelte';
 	import { settings, pressedKeys, selectedFiles, loadedFiles } from '$lib/stores';
 	import { fileListHeaderMinWidth, zoomStep, maxZoom, minZoom } from '$lib/utils/constants';
+	import LazyLoder from './LazyLoder.svelte';
 
 	let files: FileData[] = [];
 	$: files = $loadedFiles;
@@ -173,7 +174,7 @@
 		$selectedFiles.files = [];
 	}
 
-	let items: HTMLButtonElement;
+	let items: Element;
 
 	$: $settings.currentPath,
 		resetScroll();
@@ -205,7 +206,9 @@
 	</div>
 	<button class="file-list-items scrollbar reset-button" on:click={clickHandler} bind:this={items}>
 		{#each files as file}
-			<FileListEntry {file} {onSelected} width={totalWidth} />
+			<LazyLoder height={3.15 * 18 * $settings.appearance.zoom} width={totalWidth}>
+				<FileListEntry {file} {onSelected} width={totalWidth} />
+			</LazyLoder>
 		{/each}
 	</button>
 </div>

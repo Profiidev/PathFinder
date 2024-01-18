@@ -14,6 +14,7 @@ use tree::Tree;
 use file_update_handler::FileUpdateHandler;
 use file::FileSystem;
 use tauri::{WindowEvent, Manager};
+use uuid::Uuid;
 
 static APP: TauriApp = TauriApp {
   handle: Mutex::new(None),
@@ -38,7 +39,7 @@ fn main() {
       
       tauri::WindowBuilder::new(
         &handle, 
-        &app.package_info().name,
+        Uuid::new_v4().to_string(),
         tauri::WindowUrl::App("index.html".into())
       )
       .title(&app.package_info().name)

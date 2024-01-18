@@ -10,12 +10,13 @@ export const search = async (search: string) => {
 		path: get(settings).currentPath,
 		useRegex: get(settings).useRegex,
     indexStart: 0,
-		indexEnd: 1000,
+		indexEnd: 10000,
 		searchId: Math.floor(Math.random() * 1000000000)
 	}).catch((err) => {
 		console.log(err);
   });
-  if (!(res instanceof Array)) return false;
+	if (!(res instanceof Array)) return false;
+	if(search === '') return false;
 
 	let files = res.map((file) => {
 		return {
