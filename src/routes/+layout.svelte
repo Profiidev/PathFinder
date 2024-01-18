@@ -14,7 +14,7 @@
 	} from '$lib/utils/theme';
 	import { load } from '$lib/start';
 	import { onMount } from 'svelte';
-	import { saveSettings } from '$lib/backend/settings';
+	import { getUserName, saveSettings } from '$lib/backend/settings';
 	import { loadFiles } from '$lib/backend/files';
 
 	const keyDownHandler = (e: KeyboardEvent) => {

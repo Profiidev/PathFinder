@@ -45,34 +45,7 @@ export const defaultSettings = {
 		viewType: ViewType.LIST
 	} as AppearanceSettings,
 	sidebar: {
-		pinnedPaths: [
-			{
-				name: 'Desktop',
-				path: 'C:/Users/username/Desktop',
-				type: FileType.DIRECTORY
-			} as Pinned,
-			{
-				name: 'Documents',
-				path: 'C:/Users/username/Documents',
-				type: FileType.DIRECTORY
-			} as Pinned,
-			{
-				name: 'Downloads',
-				path: 'C:/Users/username/Downloads',
-				type: FileType.DIRECTORY
-			} as Pinned,
-			{ name: 'Music', path: 'C:/Users/username/Music', type: FileType.DIRECTORY } as IndexLocation,
-			{
-				name: 'Pictures',
-				path: 'C:/Users/username/Pictures',
-				type: FileType.DIRECTORY
-			} as Pinned,
-			{
-				name: 'Videos',
-				path: 'C:/Users/username/Videos',
-				type: FileType.DIRECTORY
-			} as Pinned
-		] as Pinned[],
+		pinnedPaths: [] as Pinned[],
 		devices: [],
 		tags: [
 			{ name: 'Important', color: '#ff0000' } as Tag,
@@ -83,7 +56,8 @@ export const defaultSettings = {
 		expanded: [true, true, true, true]
 	} as SidebarSettings,
 	currentPath: 'C:/',
-	loaded: false
+	useRegex: false,
+	loaded: false,
 } as Settings;
 
 export const minZoom = 0.1;

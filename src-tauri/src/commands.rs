@@ -1,11 +1,13 @@
+use tauri::Manager;
 use uuid::Uuid;
-use crate::tree::{TreeSearchType, Tree};
-use crate::file::{File, FileSystem, FileData};
+use crate::tree::Tree;
+use crate::file::{FileSystem, FileData};
 use crate::StateData;
 use crate::FileUpdateHandler;
+use crate::SEARCH_ID;
 
 #[tauri::command]
-pub fn save_settings(settings: String, state: tauri::State<StateData>) -> bool {
+pub fn save_settings(settings: String, state: tauri::State<StateData>, app_handle: tauri::AppHandle) -> bool {
   let mut config = match state.2.lock() {
     Ok(config) => config,
     Err(_) => return false,
@@ -15,6 +17,8 @@ pub fn save_settings(settings: String, state: tauri::State<StateData>) -> bool {
   
   let config_path = config.path.clone() + "/settings.json";
   config.settings.save(&(config_path));
+
+  app_handle.emit_all("update-settings", None::<String>).unwrap();
   true
 }
 
@@ -29,19 +33,11 @@ pub fn get_settings(state: tauri::State<StateData>) -> String {
 }
 
 #[tauri::command]
-pub async fn search_partial(name: String, path: String, search_type: String, is_dir: bool, index_start: i32, index_end: i32, state: tauri::State<'_,StateData>) -> Result<Vec<FileData>, ()> {
+pub async fn search_partial(name: String, path: String, use_regex: bool, index_start: i32, index_end: i32, search_id: i32, state: tauri::State<'_,StateData>) -> Result<Vec<FileData>, ()> {
+  SEARCH_ID.store(search_id, std::sync::atomic::Ordering::Relaxed);
+
   let mut found = Vec::new();
   let path = path.replace("\\", "/");
-
-  let search_type_enum = match search_type.as_str() {
-    "exact" => TreeSearchType::Exact,
-    "contains" => TreeSearchType::Contains,
-    "starts_with" => TreeSearchType::StartsWith,
-    "exact_no_type" => TreeSearchType::ExactNoType,
-    "contains_no_type" => TreeSearchType::ContainsNoType,
-    "starts_with_no_type" => TreeSearchType::StartsWithNoType,
-    _ => return Ok(found),
-  };
 
   let trees = match state.0.lock() {
     Ok(trees) => trees,
@@ -52,15 +48,15 @@ pub async fn search_partial(name: String, path: String, search_type: String, is_
       continue;
     }
 
-    found = tree.search_partial(&path, &File {
-      name: name.clone(),
-      is_dir: is_dir,
-      size: 0,
-    }, &search_type_enum);
+    found = tree.search_partial(&path, &name, use_regex, search_id);
 
     if found.len() > 0 {
       break;
     }
+  }
+
+  if SEARCH_ID.load(std::sync::atomic::Ordering::Relaxed) != search_id {
+      return Ok(Vec::new());
   }
 
   if index_end == -1 {
@@ -86,7 +82,7 @@ pub async fn search_partial(name: String, path: String, search_type: String, is_
 }
 
 #[tauri::command]
-pub async fn add_location(location: String, state: tauri::State<'_,StateData>) -> Result<bool, ()> {
+pub async fn add_location(location: String, state: tauri::State<'_,StateData>, app_handle: tauri::AppHandle) -> Result<bool, ()> {
   {
     let trees = match state.0.lock() {
       Ok(trees) => trees,
@@ -129,11 +125,12 @@ pub async fn add_location(location: String, state: tauri::State<'_,StateData>) -
 
   watcher.watcher = FileUpdateHandler::add_location(&trees.iter().map(|tree| tree.get_root_location()).collect::<Vec<String>>());
 
+  app_handle.emit_all("update-locations", None::<String>).unwrap();
   Ok(true)
 }
 
 #[tauri::command]
-pub fn remove_location(location: String, state: tauri::State<StateData>) -> bool {
+pub fn remove_location(location: String, state: tauri::State<StateData>, app_handle: tauri::AppHandle) -> bool {
   let mut trees = match state.0.lock() {
     Ok(trees) => trees,
     Err(_) => return false,
@@ -152,6 +149,8 @@ pub fn remove_location(location: String, state: tauri::State<StateData>) -> bool
 
   let tree = trees.remove(index);
   config.remove_tree(tree.id);
+
+  app_handle.emit_all("update-locations", None::<String>).unwrap();
   true
 }
 
@@ -242,4 +241,9 @@ pub fn get_files(location: String, state: tauri::State<StateData>) -> Vec<FileDa
     }
   }
   Vec::new()
+}
+
+#[tauri::command]
+pub fn get_username() -> String {
+  whoami::username()
 }

@@ -40,7 +40,7 @@
 		let dotCount = name.split('.').length - 1;
 		if (
 			((name.charAt(0) === '.' && dotCount >= 2) || (name.charAt(0) !== '.' && dotCount >= 1)) &&
-			file.type === FileType.FILE
+			file.type === FileType.FILE && !$settings.fileList.showFileExtensions
 		) {
 			return name.substring(0, name.lastIndexOf('.'));
 		} else {

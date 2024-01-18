@@ -6,6 +6,7 @@
 	import { getIconData, getSecondaryColor, getPrimaryColor } from '$lib/utils/icon_resolver';
 	import { sidebarMinWidth } from '$lib/utils/constants';
 	import { FileType } from '$lib/types';
+	import { getUserName } from '$lib/backend/settings';
 
 	let lastX = 0;
 	let isResizing = false;
@@ -45,7 +46,7 @@
 <div class="sidebar scrollbar">
 	<div class="sidebar-content" bind:this={sidebar}>
 		<div class="sidebar-top">
-			<SidebarEntry text="Home">
+			<SidebarEntry text="Home" onClick={async () => ($settings.currentPath = 'C:/Users/' + await getUserName() + '/')}>
 				<Svg
 					svgData={{
 						data: getIconData(FileType.DIRECTORY, $settings.appearance.iconTheme),
@@ -66,6 +67,7 @@
 				<SidebarEntry
 					svgData={getIconData(pinned.type, $settings.appearance.iconTheme)}
 					text={pinned.name}
+					onClick={() => ($settings.currentPath = pinned.path + '/')}
 				/>
 			{/each}
 		</SidebarSection>

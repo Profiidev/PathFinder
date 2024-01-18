@@ -5,6 +5,7 @@
 	import type { SvgColor } from '$lib/types';
 	import { loadFiles } from '$lib/backend/files';
 	import { search } from '$lib/backend/search';
+	import { getPrimaryColor } from '$lib/utils/icon_resolver';
 
 	let pathVisualizerVisible = true;
 	let pathInput: HTMLInputElement;
@@ -83,26 +84,27 @@
 	let searchValue: string = '';
 	let searching: boolean = false;
 
-	$: searchValue,
-		updatedSearch();
+	$: searchValue, updatedSearch(false);
+	$: $settings.useRegex, updatedSearch(true);
 
-	const updatedSearch = () => {
-		if(searchValue !== '') {
-			if(searching) {
+	const updatedSearch = (force: boolean) => {
+		if (searchValue !== '') {
+			if (searching || force) {
 				search(searchValue);
 			}
 		} else {
 			loadFiles();
 		}
-	}
+	};
 
 	const onSearchFocus = () => {
 		searching = true;
-	}
+	};
 
 	const onSearchBlur = () => {
 		searching = false;
-	}
+		updatedSearch(true);
+	};
 </script>
 
 <div class="topbar">
@@ -157,17 +159,36 @@
 		/>
 	</div>
 	<div class="topbar-spacing"></div>
-	<input
-		type="text"
-		placeholder="Search"
-		class="topbar-input topbar-search"
-		on:blur={onSearchBlur}
-		on:focus={onSearchFocus}
-		on:keydown={keydown}
-		bind:this={searchInput}
-		bind:value={searchValue}
-	/>
-
+	<div class="topbar-search-container">
+		<input
+			type="text"
+			placeholder="Search"
+			class="topbar-input topbar-search"
+			style="color: var(--color-text);"
+			on:blur={onSearchBlur}
+			on:focus={onSearchFocus}
+			on:keydown={keydown}
+			bind:this={searchInput}
+			bind:value={searchValue}
+		/>
+		<button
+			class="regex-icon reset-button"
+			on:click={() => ($settings.useRegex = !$settings.useRegex)}
+		>
+			<Svg
+				svgData={{
+					data: {
+						path: '/svgs/ui/regex.svg',
+						colors: !$settings.useRegex
+							? iconColors
+							: [{ key: 'FFFFFF', color: getPrimaryColor($settings.appearance.iconTheme) }]
+					},
+					width: 18.75,
+					height: 18.75
+				}}
+			/>
+		</button>
+	</div>
 	<div class="path-visualizer" style="max-width: {pathWidth}px;">
 		{#if pathParts.length > 0 && pathVisualizerVisible}
 			{#each pathParts as part, index}
@@ -285,6 +306,16 @@
 		border: 1px solid var(--color-secondary);
 		border-bottom: 1px solid var(--color-accent);
 		color: var(--color-text);
+	}
+
+	.regex-icon {
+		position: fixed;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		top: 1.15em;
+		right: 2.2em;
 	}
 
 	.path-visualizer {

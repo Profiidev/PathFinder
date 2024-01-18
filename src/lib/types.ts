@@ -33,6 +33,7 @@ export type Settings = {
 	appearance: AppearanceSettings;
 	sidebar: SidebarSettings;
 	currentPath: string;
+	useRegex: boolean;
 	loaded: boolean;
 };
 

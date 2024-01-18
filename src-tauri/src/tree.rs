@@ -1,21 +1,13 @@
 use std::{cmp::Ordering, fs, os::windows::prelude::*};
 use serde::{Serialize, Deserialize};
+use regex::Regex;
 use crate::file::{File, FileData};
+use crate::SEARCH_ID;
 
 #[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct Tree {
     pub root: Node,
     pub id: String,
-}
-
-#[derive(Debug)]
-pub enum TreeSearchType {
-    Exact,
-    Contains,
-    StartsWith,
-    ExactNoType,
-    ContainsNoType,
-    StartsWithNoType,
 }
 
 impl Tree {
@@ -35,22 +27,23 @@ impl Tree {
         self.root.data.name.clone()
     }
 
-    fn search(origin: &Node, start_path: String, data: &File, search_type: &TreeSearchType) -> Vec<FileData>{
-        match search_type {
-            TreeSearchType::Exact => origin.search(data, start_path, &|a, b| a.name.to_lowercase() == b.name.to_lowercase() && a.is_dir == b.is_dir),
-            TreeSearchType::Contains => origin.search(data, start_path, &|a, b| a.name.to_lowercase().contains(&b.name.to_lowercase()) && a.is_dir == b.is_dir),
-            TreeSearchType::StartsWith => origin.search(data, start_path, &|a, b| a.name.to_lowercase().starts_with(&b.name.to_lowercase()) && a.is_dir == b.is_dir),
-            TreeSearchType::ExactNoType => origin.search(data, start_path, &|a, b| a.name.to_lowercase() == b.name.to_lowercase()),
-            TreeSearchType::ContainsNoType => origin.search(data, start_path, &|a, b| a.name.to_lowercase().contains(&b.name.to_lowercase())),
-            TreeSearchType::StartsWithNoType => origin.search(data, start_path, &|a, b| a.name.to_lowercase().starts_with(&b.name.to_lowercase())),
+    fn search(origin: &Node, start_path: String, regex: &str, use_regex: bool, search_id: i32) -> Vec<FileData>{
+        if !use_regex {
+            return origin.search(start_path, &|a: File| a.name.to_lowercase().contains(&regex.to_lowercase()), search_id);
+        } else {
+            let regex = match Regex::new(regex) {
+                Ok(regex) => regex,
+                Err(_) => return Vec::new(),
+            };
+            return origin.search(start_path, &|a: File| regex.is_match(&a.name), search_id);
         }
     }
 
-    pub fn search_partial(&self, path: &str, data: &File, search_type: &TreeSearchType) -> Vec<FileData> {
+    pub fn search_partial(&self, path: &str, regex: &str, use_regex: bool, search_id: i32) -> Vec<FileData> {
         let path_vec = parse_path(path, &self.root.data.name);
         match self.root.find_from_path(path_vec) {
             Some(node) => {
-                Tree::search(node, path.to_string(), data, search_type)
+                Tree::search(node, path.to_string(), regex, use_regex, search_id)
             },
             None => Vec::new(),
         }
@@ -136,9 +129,12 @@ impl Node {
         }
     }
 
-    pub fn search(&self, data: &File, current_path: String, comparator: &dyn Fn(File, File) -> bool) -> Vec<FileData> {
+    pub fn search(&self, current_path: String, comparator: &dyn Fn(File) -> bool, search_id: i32) -> Vec<FileData> {
+        if SEARCH_ID.load(std::sync::atomic::Ordering::Relaxed) != search_id {
+            return Vec::new();
+        }
         let mut found = Vec::new();
-        if comparator(self.data.clone(), data.clone()) {
+        if comparator(self.data.clone()) {
             found.push(FileData {
                 file: self.data.clone(),
                 path: current_path.clone(),
@@ -149,7 +145,7 @@ impl Node {
             });
         }
         for child in &self.children {
-            found.extend(child.search(data, format!("{}/{}", &current_path, &child.data.name), comparator));
+            found.extend(child.search( format!("{}/{}", &current_path, &child.data.name), comparator, search_id));
         }
         found
     }

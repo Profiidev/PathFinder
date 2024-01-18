@@ -8,10 +8,10 @@ export const search = async (search: string) => {
 	const res = await invoke('search_partial', {
 		name: search,
 		path: get(settings).currentPath,
-		searchType: 'contains_no_type',
-    isDir: false,
+		useRegex: get(settings).useRegex,
     indexStart: 0,
-    indexEnd: 100
+		indexEnd: 1000,
+		searchId: Math.floor(Math.random() * 1000000000)
 	}).catch((err) => {
 		console.log(err);
   });

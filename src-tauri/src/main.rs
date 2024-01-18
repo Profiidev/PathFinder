@@ -8,24 +8,43 @@ mod commands;
 mod config;
 
 use std::sync::Mutex;
+use commands::get_username;
 use config::Config;
 use tree::Tree;
 use file_update_handler::FileUpdateHandler;
 use file::FileSystem;
-use tauri::Manager;
-use tauri::WindowEvent;
+use tauri::{WindowEvent, Manager};
 
 static APP: TauriApp = TauriApp {
   handle: Mutex::new(None),
 };
+static SEARCH_ID: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
 
 fn main() {
-  let mut config = Config::new("../test_config");
+  let mut config = Config::new(&("C:/Users/".to_string() + &get_username().to_string() + "/AppData/Roaming/PathFinder/"));
 
   let trees = FileSystem::load_locations(&mut config);
   let event_handler = FileUpdateHandler::inti_locations(&trees.iter().map(|tree| tree.get_root_location()).collect::<Vec<String>>());
   
   tauri::Builder::default()
+    .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+      let handle = match APP.handle.lock() {
+        Ok(handle) => match handle.as_ref() {
+          Some(handle) => handle.clone(),
+          None => return,
+        },
+        Err(_) => return,
+      };
+      
+      tauri::WindowBuilder::new(
+        &handle, 
+        &app.package_info().name,
+        tauri::WindowUrl::App("index.html".into())
+      )
+      .title(&app.package_info().name)
+      .inner_size(1200f64, 675f64)
+      .build().unwrap();
+    }))
     .manage(StateData(Mutex::new(trees), Mutex::new(event_handler), Mutex::new(config)))
     .invoke_handler(tauri::generate_handler![
       commands::search_partial, 
@@ -37,6 +56,7 @@ fn main() {
       commands::get_settings, 
       commands::save_settings,
       commands::get_files,
+      commands::get_username,
     ])
     .setup(|app| {
       let handle = app.handle();
@@ -51,7 +71,7 @@ fn main() {
     .build(tauri::generate_context!())
     .expect("error while running tauri application")
     .run(|_app_handle, event| match event {
-      tauri::RunEvent::ExitRequested { .. } => {
+      tauri::RunEvent::ExitRequested { api, .. } => {
         let handle = APP.handle.lock().unwrap();
         let state = match handle.as_ref() {
           Some(handle) => {
@@ -62,6 +82,7 @@ fn main() {
         let mut trees = state.0.lock().unwrap();
         let mut config = state.2.lock().unwrap();
         config.save(&mut *trees);
+        api.prevent_exit();
       }
       _ => {}
     });
