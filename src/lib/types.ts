@@ -1,6 +1,7 @@
 export type FileData = {
 	name: string;
 	type: FileType;
+	path: string;
 	size: number;
 	lastModifiedDate: number;
 	createdDate: number;

@@ -21,12 +21,16 @@ export const getSettings = async () => {
 	});
 
 	if (typeof res !== 'string') return false;
-	if (res === '') return false;
+	if (res === '') {
+		get(settings).loaded = true;
+		saveSettings();
+		return false;
+	}
 
 	let settingsData = JSON.parse(res) as Settings;
 	
 	settingsData.loaded = true;
 	settings.set(settingsData);
-	
+
 	return true;
 };

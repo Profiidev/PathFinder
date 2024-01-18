@@ -8,6 +8,7 @@
 	export let file: FileData = {
 		name: 'undefined',
 		type: FileType.FILE,
+		path: 'undefined',
 		size: 0,
 		lastModifiedDate: Date.now(),
 		createdDate: Date.now(),

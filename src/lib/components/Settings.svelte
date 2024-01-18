@@ -10,7 +10,7 @@
 	import { getPrimaryColor } from '$lib/utils/icon_resolver';
 	import { dialog } from '@tauri-apps/api';
 	import Modal from './Modal.svelte';
-	import { IconTheme, Theme } from '$lib/types';
+	import { FileType, IconTheme, Theme } from '$lib/types';
 	import { maxZoom, minZoom, zoomStep } from '$lib/utils/constants';
 	import { loadFiles } from '$lib/backend/files';
 
@@ -76,6 +76,15 @@
 		locationModalText = text + ' Location successfully';
 		locationModalOpen = true;
 	};
+
+	$: $locations,
+		$locations.sort((a, b) => {
+			if(a.type === b.type) {
+				return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+			} else {
+				return a.type === FileType.DIRECTORY ? 1 : -1;
+			}
+		});
 
 	const closeSettings = () => {
 		$settingsEnabled = false;

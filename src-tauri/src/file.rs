@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use std::{fs, panic, thread, sync::atomic::{AtomicUsize, Ordering}, cell::RefCell, time::UNIX_EPOCH, os::windows::prelude::*};
+use std::{fs, panic, thread, sync::atomic::{AtomicUsize, Ordering}, cell::RefCell, time::UNIX_EPOCH, os::windows::prelude::*, path::PathBuf};
 use filesize::PathExt;
 use crate::{tree::{Tree, Node}, config::Config};
 
@@ -22,11 +22,11 @@ pub struct FileData {
 
 impl FileData {
   pub fn update_file_data(&mut self) {
-    let metadata = match fs::metadata(format!("{}/{}", self.path, self.file.name)) {
+    let metadata = match fs::metadata(&self.path) {
       Ok(metadata) => metadata,
       Err(_) => return,
     };
-
+    
     let modified = match metadata.modified() {
         Ok(modified) => match modified.duration_since(UNIX_EPOCH) {
             Ok(duration) => duration.as_secs(),
@@ -101,7 +101,13 @@ impl FileSystem {
     for entry in child_dirs {
       let entry = entry.unwrap();
       let path = entry.path();
-      let metadata = fs::metadata(&path).unwrap();
+      let metadata = match fs::metadata(&path) {
+        Ok(metadata) => metadata,
+        Err(_) => {
+          println!("Error reading metadata for: {}", location);
+          continue;
+        }
+      };
       let is_dir = metadata.is_dir();
       child_dirs_file.push(File {
         name: entry.file_name().to_str().unwrap().to_string(),
@@ -138,10 +144,24 @@ impl FileSystem {
           result
         }));
       } else {
+        let metadata = match fs::metadata(format!("{}/{}", location, file.name)) {
+          Ok(metadata) => metadata,
+          Err(_) => {
+            println!("Error reading metadata for: {}", location);
+            continue;
+          }
+        };
+        let mut size = metadata.len();
+        if size > 100000 {
+          size = match PathBuf::from(format!("{}/{}", location, file.name)).size_on_disk_fast(&metadata) {
+            Ok(size) => size,
+            Err(_) => 0,
+          };
+        }
         children.push(Node::new(File {
           name: file.name,
           is_dir: false,
-          size: 0
+          size: size
         }));
       }
     }

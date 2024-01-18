@@ -40,6 +40,6 @@ export const updateLocations = async () => {
 			type: first.includes(':') ? FileType.DRIVE : FileType.DIRECTORY
 		});
 	});
-  
+
 	locations.set(locationsData);
 };

@@ -29,6 +29,6 @@ export const search = async (search: string) => {
 			hidden: file.hidden as boolean
 		} as FileData;
   });
-  
+	
   loadedFiles.set(files);
 };

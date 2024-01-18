@@ -135,7 +135,7 @@
 					if (data.files.length === 1) {
 						if(Date.now() - lastSingleClick < 500) {
 							if(file.type === FileType.DIRECTORY) {
-								$settings.currentPath += file.name + '/';
+								$settings.currentPath = file.path + '/';
 							} else {
 								//TODO open file
 							}
@@ -237,5 +237,6 @@
 		align-items: flex-start;
 		overflow-y: auto;
 		overflow-x: hidden;
+		height: 100%;
 	}
 </style>

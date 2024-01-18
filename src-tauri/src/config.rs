@@ -10,7 +10,7 @@ pub struct Config {
 
 impl Config {
   pub fn new(path: &str) -> Config {
-    create_all_dirs(path);
+    create_all_dirs(&(path.to_string() + "/trees/"));
     Config::load(path)
   }
 

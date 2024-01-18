@@ -240,10 +240,10 @@ impl Node {
     }
 
     fn get_file_data(&self, absolute_path: &str) -> Option<FileData> {
-        let metadata = match fs::metadata(format!("{}/{}", absolute_path, self.data.name)) {
+        let metadata = match fs::metadata(format!("{}{}", absolute_path, self.data.name)) {
             Ok(metadata) => metadata,
             Err(_) => {
-                println!("Error reading metadata for: {}/{}", absolute_path, self.data.name);
+                println!("Error reading metadata for: {}{}", absolute_path, self.data.name);
                 return None;
             }
         };
@@ -255,7 +255,7 @@ impl Node {
 
         let mut file_data = FileData {
             file: self.data.clone(),
-            path: format!("{}/{}", absolute_path, self.data.name),
+            path: format!("{}{}", absolute_path, self.data.name),
             last_modified_date: None,
             created_date: None,
             permissions: None,
