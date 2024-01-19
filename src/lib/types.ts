@@ -32,24 +32,18 @@ export type Settings = {
 	fileList: FileListSettings;
 	appearance: AppearanceSettings;
 	sidebar: SidebarSettings;
-	currentPath: string;
-	useRegex: boolean;
 	loaded: boolean;
 };
 
 export type AppearanceSettings = {
-	zoom: number;
 	theme: Theme;
 	iconTheme: IconTheme;
-	viewType: ViewType;
 };
 
 export type FileListSettings = {
 	showHiddenFiles: boolean;
 	showFileExtensions: boolean;
 	fileListHeaders: FileListHeader[];
-	sortType: SortType;
-	sortAscending: boolean;
 };
 
 export type FileListHeader = {
@@ -79,7 +73,6 @@ export type SidebarSettings = {
 	devices: Device[];
 	tags: Tag[];
 	width: number;
-	expanded: boolean[];
 };
 
 export type Tag = {
@@ -135,4 +128,15 @@ export type PathHistory = {
 	paths: string[];
 	currentIndex: number;
 	historyUpdated: boolean;
+};
+
+export type WindowSettings = {
+	currentPath: string;
+	useRegex: boolean;
+	caseSensitive: boolean;
+	sortType: SortType;
+	sortAscending: boolean;
+	zoom: number;
+	viewType: ViewType;
+	expanded: boolean[];
 };

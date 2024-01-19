@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { locations, settings, settingsEnabled } from '$lib/stores';
+	import { locations, settings, settingsEnabled, windowSettings } from '$lib/stores';
 	import Svg from './Svg.svelte';
 	import {
 		reindexLocation,
@@ -215,8 +215,8 @@
 							min={minZoom}
 							max={maxZoom}
 							step={zoomStep}
-							bind:value={$settings.appearance.zoom}
-							style="--webkit-fill-percent: {(($settings.appearance.zoom - minZoom) /
+							bind:value={$windowSettings.zoom}
+							style="--webkit-fill-percent: {(($windowSettings.zoom - minZoom) /
 								(maxZoom - minZoom)) *
 								91.66 +
 								4.16}%;"

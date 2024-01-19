@@ -27,23 +27,28 @@ impl Tree {
         self.root.data.name.clone()
     }
 
-    fn search(origin: &Node, start_path: String, regex: &str, use_regex: bool, search_id: i32) -> Vec<FileData>{
-        if !use_regex {
+    fn search(origin: &Node, start_path: String, regex: &str, use_regex: bool, case_sensitive: bool, search_id: i32) -> Vec<FileData>{
+        if !use_regex && !case_sensitive {
             return origin.search(start_path, &|a: File| a.name.to_lowercase().contains(&regex.to_lowercase()), search_id);
         } else {
-            let regex = match Regex::new(regex) {
+            let lowercased_regex = regex.to_lowercase();
+            let regex = match Regex::new(if case_sensitive { regex } else { &lowercased_regex }) {
                 Ok(regex) => regex,
                 Err(_) => return Vec::new(),
             };
-            return origin.search(start_path, &|a: File| regex.is_match(&a.name), search_id);
+            if case_sensitive {
+                return origin.search(start_path, &|a: File| regex.is_match(&a.name), search_id);
+            } else {
+                return origin.search(start_path, &|a: File| regex.is_match(&a.name.to_lowercase()), search_id);
+            }
         }
     }
 
-    pub fn search_partial(&self, path: &str, regex: &str, use_regex: bool, search_id: i32) -> Vec<FileData> {
+    pub fn search_partial(&self, path: &str, regex: &str, use_regex: bool, case_sensitive: bool, search_id: i32) -> Vec<FileData> {
         let path_vec = parse_path(path, &self.root.data.name);
         match self.root.find_from_path(path_vec) {
             Some(node) => {
-                Tree::search(node, path.to_string(), regex, use_regex, search_id)
+                Tree::search(node, path.to_string(), regex, use_regex, case_sensitive, search_id)
             },
             None => Vec::new(),
         }

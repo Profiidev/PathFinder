@@ -41,7 +41,7 @@
 			.then((res) => res.text())
 			.then((data) => {
 				svgData.data.colors?.forEach((color) => {
-					data = data.replace(new RegExp(color.key, 'g'), color.color);
+					data = data.replaceAll(new RegExp(color.key, 'g'), color.color);
 				});
 				if(fetchNumber === currentFetch)
 					svg = data;
@@ -53,7 +53,7 @@
 			.then((res) => res.text())
 			.then((data) => {
 				overlayData.data.colors.forEach((color) => {
-					data = data.replace(new RegExp(color.key, 'g'), color.color);
+					data = data.replaceAll(new RegExp(color.key, 'g'), color.color);
 				});
 				if(fetchNumber === currentOverlayFetch)
 					overlaySvg = data;

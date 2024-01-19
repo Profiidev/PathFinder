@@ -64,12 +64,13 @@ impl Config {
 
 #[derive(Serialize, Deserialize)]
 pub struct Settings {
-  pub settings: String
+  pub settings: String,
+  pub window_settings: String,
 }
 
 impl Settings {
   pub fn new() -> Settings {
-    Settings {settings: "".to_string()}
+    Settings {settings: "".to_string(), window_settings: "".to_string()}
   }
 
   pub fn load(file: &str) -> Settings {

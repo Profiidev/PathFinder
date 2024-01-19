@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Svg from './Svg.svelte';
-	import type { FileData, SvgInfo } from '$lib/types';
+	import type { FileData, FileListHeader } from '$lib/types';
 	import { FileType } from '$lib/types';
-	import { settings, selectedFiles } from '$lib/stores';
+	import { settings, selectedFiles, windowSettings } from '$lib/stores';
 	import { getIconData } from '$lib/utils/icon_resolver';
 
 	export let file: FileData = {
@@ -16,6 +16,7 @@
 		hidden: false
 	};
 	export let width = 100;
+	export let headers: FileListHeader[] = [];
 
 	export let onSelected: (e: Event, file: FileData, selected: boolean) => void = () => {};
 
@@ -23,7 +24,7 @@
 	let selected = false;
 	let fileDataString: string[] = [];
 
-	$: selected = $selectedFiles.files.includes(file.name);
+	$: selected = $selectedFiles.files.includes(file.path);
 	$: {
 		fileDataString = [];
 		fileDataString.push(parseFileName(file.name));
@@ -73,20 +74,20 @@
 
 <button
 	class="file-list-entry reset-button {selected ? 'file-list-entry-selected' : ''}"
-	style="font-size: {18 * $settings.appearance.zoom}px; width: {width}px;"
+	style="font-size: {18 * $windowSettings.zoom}px; width: {width}px;"
 	on:click={clickHandler}
 >
 	<div class="file-list-entry-icon" style={file.hidden ? 'opacity: 0.3;' : ''}>
 		<Svg
 			svgData={{
 				data: svgData,
-				width: 40 * $settings.appearance.zoom,
-				height: 40 * $settings.appearance.zoom
+				width: 40 * $windowSettings.zoom,
+				height: 40 * $windowSettings.zoom
 			}}
 		/>
 	</div>
 	<div class="file-list-entry-data">
-		{#each $settings.fileList.fileListHeaders as header, i}
+		{#each headers as header, i}
 			{#if header.active}
 				<div
 					class="file-list-entry-info {header.align_text_right

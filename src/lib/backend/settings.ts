@@ -1,6 +1,6 @@
-import { FileType, type IndexLocation, type Pinned, type Settings } from '$lib/types';
+import { FileType, type IndexLocation, type Pinned, type Settings, type WindowSettings } from '$lib/types';
 import { invoke } from '@tauri-apps/api';
-import { settings } from '$lib/stores';
+import { settings, windowSettings } from '$lib/stores';
 import { get } from 'svelte/store';
 
 let skipSave = false;
@@ -22,7 +22,7 @@ export const saveSettings = async () => {
 	return res;
 };
 
-export const getSettings = async (backendUpdate: boolean) => {
+export const getSettings = async () => {
 	const res = await invoke('get_settings').catch((err: Error) => {
 		console.log(err);
 	});
@@ -39,6 +39,34 @@ export const getSettings = async (backendUpdate: boolean) => {
 	skipSave = true;
 	settingsData.loaded = true;
 	settings.set(settingsData);
+
+	return true;
+};
+
+export const saveWindowSettings = async () => {
+	if (!get(settings).loaded) return true;
+
+	const res = await invoke('save_window_settings', {
+		windowSettings: JSON.stringify(get(windowSettings))
+	}).catch((err: Error) => {
+		console.log(err);
+	});
+	return res;
+}
+
+export const getWindowSettings = async () => {
+	const res = await invoke('get_window_settings').catch((err: Error) => {
+		console.log(err);
+	});
+
+	if (typeof res !== 'string') return false;
+	if (res === '') {
+		return false;
+	}
+
+	let settingsData = JSON.parse(res) as WindowSettings;
+
+	windowSettings.set(settingsData);
 
 	return true;
 };

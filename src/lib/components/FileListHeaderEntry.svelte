@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { settings } from '$lib/stores';
+	import { settings, windowSettings } from '$lib/stores';
 	import Svg from '$lib/components/Svg.svelte';
 	import { SortType } from '$lib/types';
 	import type { SvgColor } from '$lib/types';
@@ -18,8 +18,8 @@
 
 	$: iconColors = [{ key: "#FFFFFF", color: getTextColor($settings.appearance.theme) }];
 	$: {
-		if (type === $settings.fileList.sortType) {
-			if ($settings.fileList.sortAscending) {
+		if (type === $windowSettings.sortType) {
+			if ($windowSettings.sortAscending) {
 				searchIcon = 'up';
 			} else {
 				searchIcon = 'down';
@@ -51,8 +51,8 @@
 							path: '/svgs/simple_arrow/simple_arrow_up.svg',
 							colors: iconColors
 						},
-						width: 20 * $settings.appearance.zoom,
-						height: 20 * $settings.appearance.zoom
+						width: 20 * $windowSettings.zoom,
+						height: 20 * $windowSettings.zoom
 					}}
 				/>
 			{:else if searchIcon === 'down'}
@@ -62,8 +62,8 @@
 							path: '/svgs/simple_arrow/simple_arrow_down.svg',
 							colors: iconColors
 						},
-						width: 20 * $settings.appearance.zoom,
-						height: 20 * $settings.appearance.zoom
+						width: 20 * $windowSettings.zoom,
+						height: 20 * $windowSettings.zoom
 					}}
 				/>
 			{/if}

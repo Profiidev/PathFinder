@@ -58,6 +58,8 @@ fn main() {
       commands::save_settings,
       commands::get_files,
       commands::get_username,
+      commands::get_window_settings,
+      commands::save_window_settings,
     ])
     .setup(|app| {
       let handle = app.handle();

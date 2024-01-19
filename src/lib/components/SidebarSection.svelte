@@ -1,5 +1,5 @@
 <script>
-	import { settings } from '$lib/stores';
+	import { windowSettings } from '$lib/stores';
 	import Svg from '$lib/components/Svg.svelte';
 
 	export let index = 0;
@@ -10,14 +10,14 @@
 	<button
 		class="sidebar-header reset-button"
 		on:click={() => {
-			$settings.sidebar.expanded[index] = !$settings.sidebar.expanded[index];
+			$windowSettings.expanded[index] = !$windowSettings.expanded[index];
 		}}
 	>
 		<span>{text}</span>
 		<Svg
 			svgData={{
 				data: {
-					path: $settings.sidebar.expanded[index]
+					path: $windowSettings.expanded[index]
 						? '/svgs/simple_arrow/simple_arrow_up.svg'
 						: '/svgs/simple_arrow/simple_arrow_down.svg',
 					colors: [{ key: 'FFFFFF', color: '9293a0' }]
@@ -27,7 +27,7 @@
 			}}
 		/>
 	</button>
-	{#if $settings.sidebar.expanded[index]}
+	{#if $windowSettings.expanded[index]}
 		<div class="sidebar-section-entries">
 			<slot />
 		</div>

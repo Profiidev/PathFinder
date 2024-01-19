@@ -2,7 +2,7 @@
 	import SidebarEntry from '$lib/components/SidebarEntry.svelte';
 	import SidebarSection from '$lib/components/SidebarSection.svelte';
 	import Svg from '$lib/components/Svg.svelte';
-	import { settings, locations } from '$lib/stores';
+	import { settings, locations, windowSettings } from '$lib/stores';
 	import { getIconData, getSecondaryColor, getPrimaryColor } from '$lib/utils/icon_resolver';
 	import { sidebarMinWidth } from '$lib/utils/constants';
 	import { FileType } from '$lib/types';
@@ -37,7 +37,7 @@
 	};
 
 	const locationClick = (path: string) => {
-		$settings.currentPath = path;
+		$windowSettings.currentPath = path;
 	}
 </script>
 
@@ -46,7 +46,7 @@
 <div class="sidebar scrollbar">
 	<div class="sidebar-content" bind:this={sidebar}>
 		<div class="sidebar-top">
-			<SidebarEntry text="Home" onClick={async () => ($settings.currentPath = 'C:/Users/' + await getUserName() + '/')}>
+			<SidebarEntry text="Home" onClick={async () => ($windowSettings.currentPath = 'C:/Users/' + await getUserName() + '/')}>
 				<Svg
 					svgData={{
 						data: getIconData(FileType.DIRECTORY, $settings.appearance.iconTheme),
@@ -67,7 +67,7 @@
 				<SidebarEntry
 					svgData={getIconData(pinned.type, $settings.appearance.iconTheme)}
 					text={pinned.name}
-					onClick={() => ($settings.currentPath = pinned.path + '/')}
+					onClick={() => ($windowSettings.currentPath = pinned.path + '/')}
 				/>
 			{/each}
 		</SidebarSection>

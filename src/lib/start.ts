@@ -1,11 +1,12 @@
 import { updateLocations } from "./backend/location";
-import { getSettings } from "./backend/settings";
+import { getSettings, getWindowSettings, saveWindowSettings } from "./backend/settings";
 import { loadFiles } from "./backend/files";
 import { listen } from "@tauri-apps/api/event";
 
 export const load = async () => {
     await updateLocations();
-    await getSettings(false);
+    await getSettings();
+    await getWindowSettings();
     await loadFiles();
     await eventListener();
 }
@@ -15,6 +16,9 @@ const eventListener = async () => {
         await updateLocations();
     });
     await listen("update-settings", async (e) => {
-        await getSettings(true);
+        await getSettings();
+    });
+    await listen('tauri://close-requested', async (e) => {
+        await saveWindowSettings();
     });
 }

@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api";
-import { settings } from "$lib/stores";
+import { settings, windowSettings } from "$lib/stores";
 import { get } from "svelte/store";
 import { FileType, type FileData } from "$lib/types";
 import { loadedFiles } from "$lib/stores";
@@ -7,14 +7,15 @@ import { loadedFiles } from "$lib/stores";
 export const search = async (search: string) => {
 	const res = await invoke('search_partial', {
 		name: search,
-		path: get(settings).currentPath,
-		useRegex: get(settings).useRegex,
-    indexStart: 0,
+		path: get(windowSettings).currentPath,
+		useRegex: get(windowSettings).useRegex,
+		caseSensitive: get(windowSettings).caseSensitive,
+		indexStart: 0,
 		indexEnd: 10000,
 		searchId: Math.floor(Math.random() * 1000000000)
 	}).catch((err) => {
 		console.log(err);
-  });
+	});
 	if (!(res instanceof Array)) return false;
 	if(search === '') return false;
 

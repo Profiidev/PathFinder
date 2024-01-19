@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Svg from '$lib/components/Svg.svelte';
-	import { settings, pathHistory } from '$lib/stores';
+	import { windowSettings, pathHistory, settings } from '$lib/stores';
 	import { getTextColor } from '$lib/utils/theme';
 	import type { SvgColor } from '$lib/types';
 	import { loadFiles } from '$lib/backend/files';
@@ -15,10 +15,10 @@
 	$: pathWidth = pathInput?.offsetWidth;
 
 	const focusLoss = (e: Event) => {
-		$settings.currentPath = $settings.currentPath.trim().replace(/\\/g, '/');
-		if ($settings.currentPath === '') $settings.currentPath = 'C:/';
-		if ($settings.currentPath[$settings.currentPath.length - 1] !== '/')
-			$settings.currentPath += '/';
+		$windowSettings.currentPath = $windowSettings.currentPath.trim().replace(/\\/g, '/');
+		if ($windowSettings.currentPath === '') $windowSettings.currentPath = 'C:/';
+		if ($windowSettings.currentPath[$windowSettings.currentPath.length - 1] !== '/')
+			$windowSettings.currentPath += '/';
 		pathVisualizerVisible = true;
 	};
 
@@ -39,25 +39,25 @@
 	let pathParts: string[] = [];
 	let iconColors: SvgColor[] = [];
 
-	$: pathParts = $settings.currentPath.split('/').filter((part) => part !== '');
+	$: pathParts = $windowSettings.currentPath.split('/').filter((part) => part !== '');
 	$: iconColors = [{ key: '#FFFFFF', color: getTextColor($settings.appearance.theme) }];
 
 	const gotToParent = () => {
 		if (pathParts.length > 0) {
-			$settings.currentPath =
-				$settings.currentPath
+			$windowSettings.currentPath =
+				$windowSettings.currentPath
 					.split('/')
 					.filter((p) => p !== '')
 					.slice(0, -1)
 					.join('/') + '/';
-			if ($settings.currentPath === '/') $settings.currentPath = 'C:/';
+			if ($windowSettings.currentPath === '/') $windowSettings.currentPath = 'C:/';
 		}
 	};
 
 	const goToPathPart = (index: number) => {
 		if (index < pathParts.length) {
-			$settings.currentPath =
-				$settings.currentPath
+			$windowSettings.currentPath =
+				$windowSettings.currentPath
 					.split('/')
 					.filter((p) => p !== '')
 					.slice(0, index + 1)
@@ -69,7 +69,7 @@
 		if ($pathHistory.currentIndex > 0) {
 			$pathHistory.historyUpdated = true;
 			$pathHistory.currentIndex--;
-			$settings.currentPath = $pathHistory.paths[$pathHistory.currentIndex];
+			$windowSettings.currentPath = $pathHistory.paths[$pathHistory.currentIndex];
 		}
 	};
 
@@ -77,19 +77,26 @@
 		if ($pathHistory.currentIndex < $pathHistory.paths.length - 1) {
 			$pathHistory.historyUpdated = true;
 			$pathHistory.currentIndex++;
-			$settings.currentPath = $pathHistory.paths[$pathHistory.currentIndex];
+			$windowSettings.currentPath = $pathHistory.paths[$pathHistory.currentIndex];
 		}
 	};
 
 	let searchValue: string = '';
 	let searching: boolean = false;
+	let oldUseRegex: boolean = false;
+	let oldCaseSensitive: boolean = false;
 
-	$: searchValue, updatedSearch(false);
-	$: $settings.useRegex, updatedSearch(true);
+	$: searchValue, updatedSearch(false, false, false);
+	$: $windowSettings.useRegex, updatedSearch(false, true, false);
+	$: $windowSettings.caseSensitive, updatedSearch(false, false, true);
 
-	const updatedSearch = (force: boolean) => {
+	const updatedSearch = (force: boolean, regex: boolean, caseSensitive: boolean) => {
+		let newUseRegex = $windowSettings.useRegex;
+		let newCaseSensitive = $windowSettings.caseSensitive;
 		if (searchValue !== '') {
-			if (searching || force) {
+			if (searching || (regex && newUseRegex !== oldUseRegex) || force || (caseSensitive && newCaseSensitive !== oldCaseSensitive)) {
+				oldUseRegex = newUseRegex;
+				oldCaseSensitive = newCaseSensitive;
 				search(searchValue);
 			}
 		} else {
@@ -103,7 +110,7 @@
 
 	const onSearchBlur = () => {
 		searching = false;
-		updatedSearch(true);
+		updatedSearch(true, false, false);
 	};
 </script>
 
@@ -154,7 +161,7 @@
 			on:blur={focusLoss}
 			on:focus={focusGain}
 			on:keydown={keydown}
-			bind:value={$settings.currentPath}
+			bind:value={$windowSettings.currentPath}
 			bind:this={pathInput}
 		/>
 	</div>
@@ -173,13 +180,30 @@
 		/>
 		<button
 			class="regex-icon reset-button"
-			on:click={() => ($settings.useRegex = !$settings.useRegex)}
+			on:click={() => ($windowSettings.useRegex = !$windowSettings.useRegex)}
 		>
 			<Svg
 				svgData={{
 					data: {
 						path: '/svgs/ui/regex.svg',
-						colors: !$settings.useRegex
+						colors: !$windowSettings.useRegex
+							? iconColors
+							: [{ key: 'FFFFFF', color: getPrimaryColor($settings.appearance.iconTheme) }]
+					},
+					width: 18.75,
+					height: 18.75
+				}}
+			/>
+		</button>
+		<button
+			class="case-icon reset-button"
+			on:click={() => ($windowSettings.caseSensitive = !$windowSettings.caseSensitive)}
+		>
+			<Svg
+				svgData={{
+					data: {
+						path: '/svgs/ui/char_case.svg',
+						colors: !$windowSettings.caseSensitive
 							? iconColors
 							: [{ key: 'FFFFFF', color: getPrimaryColor($settings.appearance.iconTheme) }]
 					},
@@ -283,7 +307,6 @@
 		height: 2.2em;
 		min-width: 14.25em;
 		padding: 0 1.7em 0 0.5em;
-		background: url('/svgs/ui/search.svg') no-repeat scroll right center;
 		background-size: 1.2em;
 		background-position: calc(100% - 0.35em);
 		z-index: 1;
@@ -314,8 +337,18 @@
 		flex-direction: row;
 		align-items: center;
 		justify-content: center;
-		top: 1.15em;
+		top: 1.1em;
 		right: 2.2em;
+	}
+
+	.case-icon {
+		position: fixed;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		top: 1.15em;
+		right: 0.7em;
 	}
 
 	.path-visualizer {

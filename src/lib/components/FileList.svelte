@@ -1,11 +1,12 @@
 <script lang="ts">
-	import type { FileData } from '$lib/types';
+	import type { FileData, FileListHeader } from '$lib/types';
 	import { SortType, FileType } from '$lib/types';
 	import FileListEntry from './FileListEntry.svelte';
 	import FileListHeaderEntry from './FileListHeaderEntry.svelte';
-	import { settings, pressedKeys, selectedFiles, loadedFiles } from '$lib/stores';
+	import { settings, pressedKeys, selectedFiles, loadedFiles, windowSettings } from '$lib/stores';
 	import { fileListHeaderMinWidth, zoomStep, maxZoom, minZoom } from '$lib/utils/constants';
 	import LazyLoder from './LazyLoder.svelte';
+	import HeaderContext from './HeaderContext.svelte';
 
 	let files: FileData[] = [];
 	$: files = $loadedFiles;
@@ -17,8 +18,8 @@
 	}
 
 	$: files = files.sort((a, b) => {
-		let result = $settings.fileList.sortAscending ? 1 : -1;
-		switch ($settings.fileList.sortType) {
+		let result = $windowSettings.sortAscending ? 1 : -1;
+		switch ($windowSettings.sortType) {
 			case SortType.NAME:
 				if(a.type === b.type) {
 					result *= a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
@@ -56,11 +57,11 @@
 	});
 
 	const onSort = (type: SortType) => {
-		if ($settings.fileList.sortType === type) {
-			$settings.fileList.sortAscending = !$settings.fileList.sortAscending;
+		if ($windowSettings.sortType === type) {
+			$windowSettings.sortAscending = !$windowSettings.sortAscending;
 		} else {
-			$settings.fileList.sortType = type;
-			$settings.fileList.sortAscending = true;
+			$windowSettings.sortType = type;
+			$windowSettings.sortAscending = true;
 		}
 	};
 
@@ -68,9 +69,11 @@
 	let isResizing = false;
 	let pxEmConversionFactor = 0;
 	let currentType: SortType;
+	let headers: FileListHeader[] = [];
+	$: headers = $settings.fileList.fileListHeaders;
 
 	const mouseDown = (e: MouseEvent, pxEmConversion: number, type: SortType) => {
-		if (isResizing) return;
+		if (isResizing || e.button !== 0) return;
 		lastX = e.clientX;
 		isResizing = true;
 		pxEmConversionFactor = pxEmConversion;
@@ -79,6 +82,7 @@
 
 	const mouseUpHandler = (e: MouseEvent) => {
 		isResizing = false;
+		//$settings.fileList.fileListHeaders = headers;
 	};
 
 	const mouseMoveHandler = (e: MouseEvent) => {
@@ -88,16 +92,13 @@
 		lastX = e.clientX;
 		let toAdd = Math.round(delta * pxEmConversionFactor * 100) / 100;
     
-		let headers = $settings.fileList.fileListHeaders;
-    headers.forEach((header) => {
-      if (header.sortType === currentType) {
-        if (header.width + toAdd < fileListHeaderMinWidth) {
-          toAdd = fileListHeaderMinWidth - header.width;
-        }
-        header.width += toAdd;
-      }
-    });
-    $settings.fileList.fileListHeaders = headers;
+		let index = 0;
+		headers.forEach((header, i) => {
+			if (header.sortType === currentType) {
+				index = i;
+			}
+		});
+    headers[index].width = Math.max(fileListHeaderMinWidth, headers[index].width + toAdd);
 	};
 
 	let lastSingleClick = 0;
@@ -112,31 +113,31 @@
 						...data.files,
 						...files
 							.slice(start, end + 1)
-							.map((file) => file.name)
+							.map((file) => file.path)
 							.filter((f) => !data.files.includes(f))
 					];
 				}
 			} else if ($pressedKeys.includes('control')) {
 				if (selected) {
-					data.files = data.files.filter((f) => f !== file.name);
+					data.files = data.files.filter((f) => f !== file.path);
 				} else {
-					data.files = [...data.files, file.name];
+					data.files = [...data.files, file.path];
 				}
 				data.lastSelectedIndex = files.indexOf(file);
 			} else if ($pressedKeys.includes('shift')) {
 				if (data.lastSelectedIndex === -1) {
-					data.files = files.slice(0, files.indexOf(file) + 1).map((file) => file.name);
+					data.files = files.slice(0, files.indexOf(file) + 1).map((file) => file.path);
 				} else {
 					const start = Math.min(data.lastSelectedIndex, files.indexOf(file));
 					const end = Math.max(data.lastSelectedIndex, files.indexOf(file));
-					data.files = files.slice(start, end + 1).map((file) => file.name);
+					data.files = files.slice(start, end + 1).map((file) => file.path);
 				}
 			} else {
 				if (selected) {
 					if (data.files.length === 1) {
 						if(Date.now() - lastSingleClick < 500) {
 							if(file.type === FileType.DIRECTORY) {
-								$settings.currentPath = file.path + '/';
+								$windowSettings.currentPath = file.path + '/';
 							} else {
 								//TODO open file
 							}
@@ -144,10 +145,10 @@
 							//TODO change name
 						}
 					} else {
-						data.files = [file.name];
+						data.files = [file.path];
 					}
 				} else {
-					data.files = [file.name];
+					data.files = [file.path];
 				}
 				data.lastSelectedIndex = files.indexOf(file);
 				lastSingleClick = Date.now();
@@ -160,7 +161,7 @@
 		if(!$pressedKeys.includes('control')) return;
 
 		const delta = (e as WheelEvent).deltaY * -zoomStep / 100;
-		$settings.appearance.zoom = Math.max(minZoom, Math.min(maxZoom, $settings.appearance.zoom + delta));
+		$windowSettings.zoom = Math.max(minZoom, Math.min(maxZoom, $windowSettings.zoom + delta));
 	};
 
 	let headerWidths: number[] = [];
@@ -175,23 +176,42 @@
 	}
 
 	let items: Element;
+	let lastPath = '';
 
-	$: $settings.currentPath,
+	$: $windowSettings.currentPath,
 		resetScroll();
 
 	const resetScroll = () => {
-		if(items) {
+		let newPath = $windowSettings.currentPath;
+		if(items && newPath !== lastPath) {
 			items.scrollTop = 0;
+			lastPath = newPath;
 		}
+	}
+
+	let headerContextVisible = false;
+	let headerContextX = 0;
+	let headerContextY = 0;
+
+	const headerContextHandler = (e: MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		headerContextVisible = true;
+		if(e.clientX + 14 * $windowSettings.zoom * 18 > window.innerWidth) {
+			headerContextX = e.clientX - 14 * $windowSettings.zoom * 18;
+		} else {
+			headerContextX = e.clientX;
+		}
+		headerContextY = e.clientY;
 	}
 </script>
 
 <svelte:window on:mouseup={mouseUpHandler} on:mousemove={mouseMoveHandler} />
 
-<div class="file-list" style="font-size: {18 * $settings.appearance.zoom}px;" on:wheel={scrollHandler}>
-	<div class="file-list-header">
+<div class="file-list" style="font-size: {18 * $windowSettings.zoom}px;" on:wheel={scrollHandler}>
+	<button class="file-list-header reset-button" on:contextmenu={headerContextHandler}>
 		<div class="file-list-header-left" style="min-width: 2.75em;" bind:clientWidth={headerWidths[0]}></div>
-		{#each $settings.fileList.fileListHeaders as header, i}
+		{#each headers as header, i}
 			{#if header.active}
 				<FileListHeaderEntry
 					width={header.width}
@@ -203,11 +223,12 @@
 				/>
 			{/if}
 		{/each}
-	</div>
+		<HeaderContext x={headerContextX} y={headerContextY} bind:visible={headerContextVisible} />
+	</button>
 	<button class="file-list-items scrollbar reset-button" on:click={clickHandler} bind:this={items}>
 		{#each files as file}
-			<LazyLoder height={3.15 * 18 * $settings.appearance.zoom} width={totalWidth}>
-				<FileListEntry {file} {onSelected} width={totalWidth} />
+			<LazyLoder height={3.15 * 18 * $windowSettings.zoom} width={totalWidth}>
+				<FileListEntry {file} {onSelected} width={totalWidth} bind:headers={headers} />
 			</LazyLoder>
 		{/each}
 	</button>

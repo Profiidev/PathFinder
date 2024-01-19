@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { pathHistory, pressedKeys, settings } from '$lib/stores';
+	import { pathHistory, pressedKeys, settings, windowSettings } from '$lib/stores';
 	import {
 		getPrimaryColor as getAccentColor,
 		getSecondaryColor as getAccentColorDark
@@ -81,23 +81,23 @@
 
 	$: $settings, saveSettings();
 
-	$: $settings.currentPath, reloadFiles();
+	$: $windowSettings.currentPath, reloadFiles();
 
 	const reloadFiles = () => {
-		if ($settings.currentPath[$settings.currentPath.length - 1] === '/') {
+		if ($windowSettings.currentPath[$windowSettings.currentPath.length - 1] === '/') {
 			loadFiles();
 			if (
 				$pathHistory.historyUpdated ||
 				!$settings.loaded ||
 				($pathHistory.currentIndex !== -1 &&
-					$settings.currentPath === $pathHistory.paths[$pathHistory.currentIndex])
+					$windowSettings.currentPath === $pathHistory.paths[$pathHistory.currentIndex])
 			) {
 				$pathHistory.historyUpdated = false;
 				return;
 			}
 			$pathHistory.currentIndex++;
 			$pathHistory.paths = $pathHistory.paths.slice(0, $pathHistory.currentIndex);
-			$pathHistory.paths.push($settings.currentPath);
+			$pathHistory.paths.push($windowSettings.currentPath);
 		}
 	};
 

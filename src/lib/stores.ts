@@ -1,8 +1,10 @@
 import { writable } from 'svelte/store';
 import type { FileSelectionData, FileData, LocationData, PathHistory } from './types';
-import { defaultSettings } from './utils/constants';
+import { defaultSettings, defaultWindowSettings } from './utils/constants';
 
 export const settings = writable(defaultSettings);
+
+export const windowSettings = writable(defaultWindowSettings);
 
 export const selectedFiles = writable({
 	files: [] as string[],

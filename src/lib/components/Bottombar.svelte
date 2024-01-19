@@ -1,10 +1,10 @@
 <script lang="ts">
 	import Svg from '$lib/components/Svg.svelte';
-	import { settings, loadedFiles, selectedFiles, settingsEnabled } from '$lib/stores';
+	import { settings, loadedFiles, selectedFiles, settingsEnabled, windowSettings } from '$lib/stores';
 	import { ViewType } from '$lib/types';
 
 	const handleAppearanceSelectionClick = (viewType: ViewType) => {
-		$settings.appearance.viewType = viewType;
+		$windowSettings.viewType = viewType;
 	};
 </script>
 
@@ -27,7 +27,7 @@
 		</div>
 		<div class="appearance-selection">
 			<button
-				class="appearance-selection-grid reset-button {$settings.appearance.viewType ===
+				class="appearance-selection-grid reset-button {$windowSettings.viewType ===
 				ViewType.GRID
 					? 'appearance-selection-selected'
 					: ''}"
@@ -45,7 +45,7 @@
 				/>
 			</button>
 			<button
-				class="appearance-selection-list reset-button {$settings.appearance.viewType ===
+				class="appearance-selection-list reset-button {$windowSettings.viewType ===
 				ViewType.LIST
 					? 'appearance-selection-selected'
 					: ''}"

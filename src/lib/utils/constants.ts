@@ -7,7 +7,7 @@ import type {
 	SidebarSettings,
 	Tag,
 	Pinned,
-	IndexLocation
+	WindowSettings
 } from '$lib/types';
 
 export const fileListHeaders = [
@@ -35,14 +35,10 @@ export const defaultSettings = {
 		showHiddenFiles: true,
 		showFileExtensions: true,
 		fileListHeaders: fileListHeaders,
-		sortType: SortType.NAME,
-		sortAscending: true
 	} as FileListSettings,
 	appearance: {
-		zoom: 0.5,
 		theme: Theme.DARK,
 		iconTheme: IconTheme.BLUE,
-		viewType: ViewType.LIST
 	} as AppearanceSettings,
 	sidebar: {
 		pinnedPaths: [] as Pinned[],
@@ -53,12 +49,20 @@ export const defaultSettings = {
 			{ name: 'Personal', color: '#0000ff' } as Tag
 		] as Tag[],
 		width: 10,
-		expanded: [true, true, true, true]
 	} as SidebarSettings,
-	currentPath: 'C:/',
-	useRegex: false,
 	loaded: false,
 } as Settings;
+
+export const defaultWindowSettings = {
+	currentPath: 'C:/',
+	useRegex: false,
+	caseSensitive: false,
+	sortType: SortType.NAME,
+	sortAscending: true,
+	zoom: 0.5,
+	viewType: ViewType.LIST,
+	expanded: [true, true, true, true],
+} as WindowSettings;
 
 export const minZoom = 0.1;
 export const maxZoom = 2;

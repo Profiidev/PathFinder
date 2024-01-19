@@ -1,4 +1,4 @@
-use tauri::Manager;
+use tauri::{Manager, Window};
 use uuid::Uuid;
 use crate::tree::Tree;
 use crate::file::{FileSystem, FileData};
@@ -7,7 +7,7 @@ use crate::FileUpdateHandler;
 use crate::SEARCH_ID;
 
 #[tauri::command]
-pub fn save_settings(settings: String, state: tauri::State<StateData>, app_handle: tauri::AppHandle) -> bool {
+pub fn save_settings(settings: String, state: tauri::State<StateData>, app_handle: tauri::AppHandle, window: Window) -> bool {
   let mut config = match state.2.lock() {
     Ok(config) => config,
     Err(_) => return false,
@@ -18,7 +18,7 @@ pub fn save_settings(settings: String, state: tauri::State<StateData>, app_handl
   let config_path = config.path.clone() + "/settings.json";
   config.settings.save(&(config_path));
 
-  app_handle.emit_all("update-settings", None::<String>).unwrap();
+  app_handle.emit_filter("update-settings", None::<String>, |w| w.label() != window.label()).unwrap();
   true
 }
 
@@ -33,7 +33,32 @@ pub fn get_settings(state: tauri::State<StateData>) -> String {
 }
 
 #[tauri::command]
-pub async fn search_partial(name: String, path: String, use_regex: bool, index_start: i32, index_end: i32, search_id: i32, state: tauri::State<'_,StateData>) -> Result<Vec<FileData>, ()> {
+pub fn save_window_settings(window_settings: String, state: tauri::State<StateData>) -> bool {
+  let mut config = match state.2.lock() {
+    Ok(config) => config,
+    Err(_) => return false,
+  };
+
+  config.settings.window_settings = window_settings;
+  
+  let config_path = config.path.clone() + "/settings.json";
+  config.settings.save(&(config_path));
+
+  true
+}
+
+#[tauri::command]
+pub fn get_window_settings(state: tauri::State<StateData>) -> String {
+  let config = match state.2.lock() {
+    Ok(config) => config,
+    Err(_) => return String::new(),
+  };
+
+  config.settings.window_settings.clone()
+}
+
+#[tauri::command]
+pub async fn search_partial(name: String, path: String, use_regex: bool, case_sensitive: bool, index_start: i32, index_end: i32, search_id: i32, state: tauri::State<'_,StateData>) -> Result<Vec<FileData>, ()> {
   SEARCH_ID.store(search_id, std::sync::atomic::Ordering::Relaxed);
 
   let mut found = Vec::new();
@@ -48,7 +73,7 @@ pub async fn search_partial(name: String, path: String, use_regex: bool, index_s
       continue;
     }
 
-    found = tree.search_partial(&path, &name, use_regex, search_id);
+    found = tree.search_partial(&path, &name, use_regex, case_sensitive, search_id);
 
     if found.len() > 0 {
       break;

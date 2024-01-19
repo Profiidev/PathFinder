@@ -1,12 +1,14 @@
 import { FileType, type FileData } from '$lib/types';
 import { invoke } from '@tauri-apps/api';
-import { loadedFiles, settings } from '$lib/stores';
+import { loadedFiles, windowSettings } from '$lib/stores';
 import { get } from 'svelte/store';
 
 export const loadFiles = async () => {
-	const res = await invoke('get_files', { location: get(settings).currentPath }).catch((err) => {
-		console.log(err);
-	});
+	const res = await invoke('get_files', { location: get(windowSettings).currentPath }).catch(
+		(err) => {
+			console.log(err);
+		}
+	);
   if (!(res instanceof Array)) return false;
   
   let files = res.map(file => {
