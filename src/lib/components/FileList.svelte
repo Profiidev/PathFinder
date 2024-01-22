@@ -8,6 +8,11 @@
 	import LazyLoder from './LazyLoder.svelte';
 	import HeaderContext from './HeaderContext.svelte';
 
+	export let fileContextVisible = false;
+	export let fileContextX = 0;
+	export let fileContextY = 0;
+	export let fileContextData = {};
+
 	let files: FileData[] = [];
 	$: files = $loadedFiles;
 
@@ -204,6 +209,19 @@
 		}
 		headerContextY = e.clientY;
 	}
+
+	const onContextMenu = (e: MouseEvent, file: FileData) => {
+		e.preventDefault();
+		e.stopPropagation();
+		fileContextVisible = true;
+		fileContextData = file;
+		if(e.clientX + 12 * 18 * $windowSettings.zoom > window.innerWidth) {
+			fileContextX = e.clientX - 12 * 18 * $windowSettings.zoom;
+		} else {
+			fileContextX = e.clientX;
+		}
+		fileContextY = e.clientY;
+	}
 </script>
 
 <svelte:window on:mouseup={mouseUpHandler} on:mousemove={mouseMoveHandler} />
@@ -228,7 +246,7 @@
 	<button class="file-list-items scrollbar reset-button" on:click={clickHandler} bind:this={items}>
 		{#each files as file}
 			<LazyLoder height={3.15 * 18 * $windowSettings.zoom} width={totalWidth}>
-				<FileListEntry {file} {onSelected} width={totalWidth} bind:headers={headers} />
+				<FileListEntry {file} {onSelected} width={totalWidth} bind:headers={headers} {onContextMenu} />
 			</LazyLoder>
 		{/each}
 	</button>

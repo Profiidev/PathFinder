@@ -5,6 +5,12 @@
 	import Bottombar from '$lib/components/Bottombar.svelte';
 	import Settings from '$lib/components/Settings.svelte';
 	import { settings, settingsEnabled } from '$lib/stores';
+	import FileContextMenu from '$lib/components/FileContextMenu.svelte';
+
+	let fileContextVisible = false;
+	let fileContextX = 0;
+	let fileContextY = 0;
+	let fileContextData = {};
 </script>
 
 <div class="container">
@@ -17,12 +23,13 @@
 				<Sidebar />
 			</div>
 			<div class="file-list-container" style="width: calc(100% - {$settings.sidebar.width}em)">
-				<FileList />
+				<FileList bind:fileContextVisible bind:fileContextX bind:fileContextY bind:fileContextData />
 			</div>
 		</div>
 		<div class="bottombar-container">
 			<Bottombar />
 		</div>
+		<FileContextMenu bind:visible={fileContextVisible} bind:fileContextX bind:fileContextY bind:fileContextData />
 	{:else}
 		<Settings />
 	{/if}

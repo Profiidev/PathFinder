@@ -1,38 +1,29 @@
-# create-svelte
+# PathFinder
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+A fast FileExplorer written in Rust and Svelte
 
-## Creating a project
+![Alt text](image.png)
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Running
 
+1. Clone this repository 
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
+git clone https://github.com/Profiidev/PathFinder && cd PathFinder
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
+2. Install all required npm packages
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+npm i
 ```
 
-## Building
-
-To create a production version of your app:
-
+3. Run the dev app
 ```bash
-npm run build
+# run the dev app
+npm run tauri dev
 ```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+    or
+```bash
+# build the project
+# the .exe will be in src-tauri/target/release and the msi installer in src-tauri/target/release/bundle/msi
+npm run tauri build
+```

@@ -19,6 +19,7 @@
 	export let headers: FileListHeader[] = [];
 
 	export let onSelected: (e: Event, file: FileData, selected: boolean) => void = () => {};
+	export let onContextMenu: (e: MouseEvent, file: FileData) => void = () => {};
 
 	let svgData = getIconData(file.type, $settings.appearance.iconTheme);
 	let selected = false;
@@ -76,6 +77,7 @@
 	class="file-list-entry reset-button {selected ? 'file-list-entry-selected' : ''}"
 	style="font-size: {18 * $windowSettings.zoom}px; width: {width}px;"
 	on:click={clickHandler}
+	on:contextmenu={(e) => onContextMenu(e, file)}
 >
 	<div class="file-list-entry-icon" style={file.hidden ? 'opacity: 0.3;' : ''}>
 		<Svg
